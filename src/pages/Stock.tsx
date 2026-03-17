@@ -14,8 +14,10 @@ export default function Stock() {
   const addProduct = useAddProduct();
   const updateStock = useUpdateStock();
   const deleteProduct = useDeleteProduct();
+  const bulkAdd = useBulkAddProducts();
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [showEntry, setShowEntry] = useState<string | null>(null);
 
   const [newRef, setNewRef] = useState("");
