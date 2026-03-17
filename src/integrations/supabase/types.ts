@@ -41,6 +41,116 @@ export type Database = {
         }
         Relationships: []
       }
+      facture_fournisseur_items: {
+        Row: {
+          created_at: string
+          facture_id: string
+          id: string
+          nom: string
+          prix_unitaire: number
+          product_id: string | null
+          quantite: number
+          reference: string
+        }
+        Insert: {
+          created_at?: string
+          facture_id: string
+          id?: string
+          nom: string
+          prix_unitaire: number
+          product_id?: string | null
+          quantite: number
+          reference?: string
+        }
+        Update: {
+          created_at?: string
+          facture_id?: string
+          id?: string
+          nom?: string
+          prix_unitaire?: number
+          product_id?: string | null
+          quantite?: number
+          reference?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facture_fournisseur_items_facture_id_fkey"
+            columns: ["facture_id"]
+            isOneToOne: false
+            referencedRelation: "factures_fournisseurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facture_fournisseur_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      factures_fournisseurs: {
+        Row: {
+          created_at: string
+          date_facture: string
+          fournisseur_id: string | null
+          fournisseur_nom: string
+          id: string
+          numero_facture: string
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          date_facture?: string
+          fournisseur_id?: string | null
+          fournisseur_nom: string
+          id?: string
+          numero_facture?: string
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          date_facture?: string
+          fournisseur_id?: string | null
+          fournisseur_nom?: string
+          id?: string
+          numero_facture?: string
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "factures_fournisseurs_fournisseur_id_fkey"
+            columns: ["fournisseur_id"]
+            isOneToOne: false
+            referencedRelation: "fournisseurs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fournisseurs: {
+        Row: {
+          adresse: string
+          created_at: string
+          id: string
+          nom: string
+          telephone: string
+        }
+        Insert: {
+          adresse?: string
+          created_at?: string
+          id?: string
+          nom: string
+          telephone?: string
+        }
+        Update: {
+          adresse?: string
+          created_at?: string
+          id?: string
+          nom?: string
+          telephone?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string

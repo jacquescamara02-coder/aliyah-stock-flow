@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Users,
   FileText,
+  Truck,
   TrendingUp,
   LogOut,
 } from "lucide-react";
@@ -16,7 +17,8 @@ const navItems = [
   { title: "Stock", url: "/stock", icon: Package },
   { title: "Ventes", url: "/ventes", icon: ShoppingCart },
   { title: "Clients", url: "/clients", icon: Users },
-  { title: "Factures", url: "/factures", icon: FileText },
+  { title: "Factures Clients", url: "/factures", icon: FileText },
+  { title: "Factures Fournisseurs", url: "/fournisseurs", icon: Truck },
 ];
 
 export function AppSidebar() {
