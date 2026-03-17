@@ -15,9 +15,12 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
   return (
     <div className="bg-foreground text-background p-8 rounded font-sans text-sm">
       <div className="flex justify-between items-start mb-8">
-        <div>
-          <h2 className="text-xl font-bold">ALIYAH SHOP</h2>
-          <p className="text-xs opacity-60">Pièces Détachées Moto</p>
+        <div className="flex items-center gap-3">
+          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-14 h-14 rounded-full object-cover" />
+          <div>
+            <h2 className="text-xl font-bold">ALIYAH SHOP</h2>
+            <p className="text-xs opacity-60">Pièces Détachées Moto</p>
+          </div>
         </div>
         <div className="text-right">
           <p className="font-mono font-bold text-lg">{vente.id.slice(0, 8).toUpperCase()}</p>
