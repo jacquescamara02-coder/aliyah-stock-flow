@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { useClients, useAddClient } from "@/hooks/useClients";
+import { useClients, useAddClient, useDeleteClient } from "@/hooks/useClients";
 import { useVentes } from "@/hooks/useVentes";
 import { formatCFA } from "@/lib/store";
 import { motion } from "framer-motion";
-import { Plus, Users, Phone, MapPin } from "lucide-react";
+import { Plus, Users, Phone, MapPin, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 export default function Clients() {
   const { data: clients = [] } = useClients();
   const { data: ventes = [] } = useVentes();
   const addClientMut = useAddClient();
+  const deleteClientMut = useDeleteClient();
   const [showAdd, setShowAdd] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
 
@@ -75,9 +77,34 @@ export default function Clients() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="label-industrial">Total Achats</p>
-                  <p className="font-mono text-sm font-bold">{formatCFA(c.total_achats)}</p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="label-industrial">Total Achats</p>
+                    <p className="font-mono text-sm font-bold">{formatCFA(c.total_achats)}</p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-card border-border">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer {c.nom} ?</AlertDialogTitle>
+                        <AlertDialogDescription>Cette action est irréversible. Le client sera définitivement supprimé.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
+                        <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+                          try {
+                            await deleteClientMut.mutateAsync(c.id);
+                            if (selectedClient === c.id) setSelectedClient(null);
+                            toast.success(`"${c.nom}" supprimé.`);
+                          } catch (e: any) { toast.error(e.message); }
+                        }}>Supprimer</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </motion.div>
