@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useVentes } from "@/hooks/useVentes";
 import { formatCFA } from "@/lib/store";
 import type { Vente, VenteItem } from "@/lib/store";
 import { motion } from "framer-motion";
-import { FileText, Printer, Eye, Share2, Download } from "lucide-react";
+import { FileText, Printer, Eye, Share2, Download, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
