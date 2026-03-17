@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useProducts, useAddProduct, useUpdateStock } from "@/hooks/useProducts";
+import { useProducts, useAddProduct, useUpdateStock, useDeleteProduct } from "@/hooks/useProducts";
 import { formatCFA, getMarginPercent } from "@/lib/store";
 import { motion } from "framer-motion";
-import { Plus, Search, Package } from "lucide-react";
+import { Plus, Search, Package, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 export default function Stock() {
