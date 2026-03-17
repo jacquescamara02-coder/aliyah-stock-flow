@@ -208,6 +208,14 @@ export default function Stock() {
         ))}
         {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Aucun produit trouvé.</p>}
       </div>
+
+      <ExcelImport
+        open={showImport}
+        onOpenChange={setShowImport}
+        onImport={async (rows) => {
+          await bulkAdd.mutateAsync(rows);
+        }}
+      />
     </div>
   );
 }
