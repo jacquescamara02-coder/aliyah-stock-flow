@@ -91,7 +91,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(...darkColor);
-  doc.text(data.clientOrFournisseur, 14, 50);
+  doc.text(data.clientOrFournisseur, 14, 54);
 
   // === TABLE ===
   const tableData = data.items.map((item) => [
