@@ -68,7 +68,7 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
       </div>
 
       <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">
-        ALIYAH SHOP — Vente de Pièces Détachées de Moto — Merci pour votre confiance
+        ALIYAH SHOP — Hire Ouatta — Tél : 07 59 09 59 59 / 05 74 98 02 68
       </div>
     </div>
   );

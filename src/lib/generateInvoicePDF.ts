@@ -162,7 +162,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   doc.setFontSize(7);
   doc.setTextColor(160, 160, 160);
   doc.text(
-    "ALIYAH SHOP — VENTE DE PIÈCES DÉTACHÉES DE MOTO — Bamako, Mali — Tél : +223 XX XX XX XX",
+    "ALIYAH SHOP — VENTE DE PIÈCES DÉTACHÉES DE MOTO — Hire Ouatta — Tél : 07 59 09 59 59 / 05 74 98 02 68",
     105,
     pageHeight - 14,
     { align: "center" }
