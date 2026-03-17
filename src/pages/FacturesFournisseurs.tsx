@@ -134,10 +134,11 @@ export default function FacturesFournisseurs() {
         <div>
           <h1 className="text-2xl font-bold">Factures Fournisseurs</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {factures.length} factures — {fournisseurs.length} fournisseurs
+            {filteredFactures.length} facture(s) {dateFrom || dateTo ? "filtrée(s)" : ""} — {fournisseurs.length} fournisseurs
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap items-center">
+          <DateFilter onFilter={(from, to) => { setDateFrom(from); setDateTo(to); }} />
           <Dialog open={showNewFournisseur} onOpenChange={setShowNewFournisseur}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2 border-border text-foreground">
