@@ -5,11 +5,11 @@ import {
   useFacturesFournisseurs,
   useAddFactureFournisseur,
 } from "@/hooks/useFournisseurs";
-import type { Fournisseur } from "@/hooks/useFournisseurs";
 import { useProducts } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
+import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
-import { Plus, Truck, Eye, Printer, FileText, Trash2 } from "lucide-react";
+import { Plus, Truck, Eye, Printer, FileText, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,6 +30,22 @@ interface NewItem {
 }
 
 const emptyItem: NewItem = { product_id: "", reference: "", nom: "", quantite: "", prix_unitaire: "" };
+
+async function buildFournisseurPDF(facture: any) {
+  return generateInvoicePDF({
+    numero: facture.numero_facture || facture.id.slice(0, 8).toUpperCase(),
+    date: new Date(facture.date_facture).toLocaleDateString("fr-FR"),
+    clientOrFournisseur: facture.fournisseur_nom,
+    labelType: "Fournisseur",
+    items: (facture.items || []).map((i: any) => ({
+      reference: i.reference,
+      nom: i.nom,
+      quantite: i.quantite,
+      prix_unitaire: i.prix_unitaire,
+    })),
+    total: facture.total,
+  });
+}
 
 export default function FacturesFournisseurs() {
   const { data: fournisseurs = [] } = useFournisseurs();
@@ -103,29 +119,29 @@ export default function FacturesFournisseurs() {
     } catch (e: any) { toast.error(e.message); }
   };
 
-  const handlePrint = (facture: any) => {
-    const date = new Date(facture.date_facture).toLocaleDateString("fr-FR");
-    const w = window.open("", "_blank");
-    if (!w) return;
-    w.document.write(`<html><head><title>Facture Fournisseur ${facture.numero_facture}</title>
-      <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:40px;font-size:13px}
-      h2{font-size:20px}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{padding:8px;text-align:left}
-      th{border-bottom:2px solid #000;font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:.5}
-      td{border-bottom:1px solid #eee}.right{text-align:right}.mono{font-family:'Courier New',monospace}
-      .total-row{border-top:2px solid #000;font-weight:bold;font-size:16px}
-      .footer{margin-top:40px;text-align:center;font-size:10px;opacity:.4}</style></head><body>
-      <div style="display:flex;justify-content:space-between;margin-bottom:30px">
-        <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Vente de Pièces Détachées de Moto</small></div></div>
-        <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${facture.numero_facture || facture.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
-      </div>
-      <div style="margin-bottom:20px"><p style="font-size:10px;text-transform:uppercase;letter-spacing:2px;opacity:.5">Fournisseur</p><p style="font-weight:bold">${facture.fournisseur_nom}</p></div>
-      <table><thead><tr><th>Désignation</th><th class="right">Qté</th><th class="right">P.U.</th><th class="right">Total</th></tr></thead><tbody>
-      ${(facture.items || []).map((i: any) => `<tr><td><small class="mono" style="opacity:.5">${i.reference}</small><br/>${i.nom}</td><td class="right mono">${i.quantite}</td><td class="right mono">${formatCFA(i.prix_unitaire)}</td><td class="right mono" style="font-weight:bold">${formatCFA(i.prix_unitaire * i.quantite)}</td></tr>`).join("")}
-      </tbody></table>
-      <div style="display:flex;justify-content:flex-end"><div style="width:250px"><div class="total-row" style="display:flex;justify-content:space-between;padding-top:8px"><span>TOTAL</span><span class="mono">${formatCFA(facture.total)}</span></div></div></div>
-      <p class="footer">ALIYAH SHOP — Vente de Pièces Détachées de Moto</p></body></html>`);
-    w.document.close();
-    w.print();
+  const handleDownloadPDF = async (facture: any) => {
+    try {
+      const doc = await buildFournisseurPDF(facture);
+      downloadPDF(doc, `Facture_Fournisseur_${(facture.numero_facture || facture.id.slice(0, 8)).toUpperCase()}.pdf`);
+      toast.success("Facture PDF téléchargée.");
+    } catch {
+      toast.error("Erreur lors de la génération du PDF.");
+    }
+  };
+
+  const handlePrintPDF = async (facture: any) => {
+    try {
+      const doc = await buildFournisseurPDF(facture);
+      doc.autoPrint();
+      const blob = getPDFBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open(url);
+      if (printWindow) {
+        printWindow.onafterprint = () => URL.revokeObjectURL(url);
+      }
+    } catch {
+      toast.error("Erreur lors de l'impression.");
+    }
   };
 
   return (
@@ -240,11 +256,14 @@ export default function FacturesFournisseurs() {
             <p className="font-medium">{f.fournisseur_nom}</p>
             <p className="font-mono text-sm text-right font-bold">{formatCFA(f.total)}</p>
             <p className="font-mono text-xs text-muted-foreground text-right">{new Date(f.date_facture).toLocaleDateString("fr-FR")}</p>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-1 justify-end">
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => setPreview(f)}>
-                <Eye className="w-3 h-3" /> Voir
+                <Eye className="w-3 h-3" />
               </Button>
-              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handlePrint(f)}>
+              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleDownloadPDF(f)}>
+                <Download className="w-3 h-3" />
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handlePrintPDF(f)}>
                 <Printer className="w-3 h-3" />
               </Button>
             </div>
@@ -298,9 +317,14 @@ export default function FacturesFournisseurs() {
                 </div>
                 <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Vente de Pièces Détachées de Moto</div>
               </div>
-              <Button onClick={() => handlePrint(preview)} className="w-full mt-4 bg-primary text-primary-foreground font-bold gap-2">
-                <Printer className="w-4 h-4" /> Imprimer
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button onClick={() => handleDownloadPDF(preview)} className="flex-1 bg-primary text-primary-foreground font-bold gap-2">
+                  <Download className="w-4 h-4" /> PDF
+                </Button>
+                <Button onClick={() => handlePrintPDF(preview)} variant="outline" className="flex-1 gap-2 border-border text-foreground">
+                  <Printer className="w-4 h-4" /> Imprimer
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
