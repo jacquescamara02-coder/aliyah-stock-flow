@@ -57,6 +57,9 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   doc.setFontSize(8);
   doc.setTextColor(...grayColor);
   doc.text("VENTE DE PIÈCES DÉTACHÉES DE MOTO", 40, 26);
+  doc.setFontSize(7);
+  doc.text("Adresse : Bamako, Mali", 40, 30);
+  doc.text("Tél : +223 XX XX XX XX", 40, 34);
 
   // Invoice number & date (right side)
   doc.setFont("helvetica", "bold");
