@@ -9,6 +9,7 @@ import { FileText, Printer, Eye, Share2, Download, Plus, MessageCircle, Mail, Tr
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
 function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
