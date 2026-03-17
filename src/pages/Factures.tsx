@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useVentes } from "@/hooks/useVentes";
+import { useVentes, useDeleteVente } from "@/hooks/useVentes";
 import { formatCFA } from "@/lib/store";
 import type { Vente, VenteItem } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
-import { FileText, Printer, Eye, Share2, Download, Plus, MessageCircle, Mail } from "lucide-react";
+import { FileText, Printer, Eye, Share2, Download, Plus, MessageCircle, Mail, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
 function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
@@ -93,6 +94,7 @@ async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
 export default function Factures() {
   const navigate = useNavigate();
   const { data: ventes = [] } = useVentes();
+  const deleteVente = useDeleteVente();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
@@ -200,6 +202,28 @@ export default function Factures() {
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleEmail(v)}>
                 <Mail className="w-3 h-3" />
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer cette facture ?</AlertDialogTitle>
+                    <AlertDialogDescription>La facture {v.id.slice(0, 8).toUpperCase()} de {v.client_nom} sera définitivement supprimée.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+                      try {
+                        await deleteVente.mutateAsync(v.id);
+                        toast.success("Facture supprimée.");
+                      } catch (e: any) { toast.error(e.message); }
+                    }}>Supprimer</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </motion.div>
         ))}

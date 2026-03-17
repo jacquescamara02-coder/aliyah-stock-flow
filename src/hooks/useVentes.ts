@@ -19,6 +19,22 @@ export function useVentes() {
   });
 }
 
+export function useDeleteVente() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (venteId: string) => {
+      // Delete items first, then the vente
+      await supabase.from("vente_items").delete().eq("vente_id", venteId);
+      const { error } = await supabase.from("ventes").delete().eq("id", venteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ventes"] });
+      qc.invalidateQueries({ queryKey: ["clients"] });
+    },
+  });
+}
+
 export function useConfirmVente() {
   const qc = useQueryClient();
   return useMutation({
