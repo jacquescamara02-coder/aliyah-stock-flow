@@ -202,6 +202,28 @@ export default function Factures() {
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleEmail(v)}>
                 <Mail className="w-3 h-3" />
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer cette facture ?</AlertDialogTitle>
+                    <AlertDialogDescription>La facture {v.id.slice(0, 8).toUpperCase()} de {v.client_nom} sera définitivement supprimée.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+                      try {
+                        await deleteVente.mutateAsync(v.id);
+                        toast.success("Facture supprimée.");
+                      } catch (e: any) { toast.error(e.message); }
+                    }}>Supprimer</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </motion.div>
         ))}
