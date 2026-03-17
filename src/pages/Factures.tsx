@@ -112,6 +112,7 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
 }
 
 export default function Factures() {
+  const navigate = useNavigate();
   const { data: ventes = [] } = useVentes();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
   const [dateFrom, setDateFrom] = useState<Date>();
