@@ -94,6 +94,7 @@ async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
 export default function Factures() {
   const navigate = useNavigate();
   const { data: ventes = [] } = useVentes();
+  const deleteVente = useDeleteVente();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
