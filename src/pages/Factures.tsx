@@ -7,6 +7,7 @@ import { FileText, Printer, Eye, Share2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
 function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
   const date = new Date(vente.created_at).toLocaleDateString('fr-FR');
@@ -112,6 +113,10 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
 export default function Factures() {
   const { data: ventes = [] } = useVentes();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+
+  const filtered = filterByDateRange(ventes, "created_at", dateFrom, dateTo);
 
   const handlePrint = (vente: Vente & { items?: VenteItem[] }) => {
     const printWindow = window.open('', '_blank');
@@ -147,9 +152,12 @@ export default function Factures() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Factures</h1>
-        <p className="text-muted-foreground text-sm mt-1">{ventes.length} factures générées</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Factures Clients</h1>
+          <p className="text-muted-foreground text-sm mt-1">{filtered.length} facture(s) {dateFrom || dateTo ? "filtrée(s)" : "générées"}</p>
+        </div>
+        <DateFilter onFilter={(from, to) => { setDateFrom(from); setDateTo(to); }} />
       </div>
 
       <div className="bg-card border border-border rounded overflow-hidden">
@@ -160,7 +168,7 @@ export default function Factures() {
           <span className="label-industrial text-right">Date</span>
           <span className="label-industrial text-right">Actions</span>
         </div>
-        {ventes.map((v) => (
+        {filtered.map((v) => (
           <motion.div key={v.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
             className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
             <p className="font-mono text-sm font-bold text-primary">{v.id.slice(0, 8).toUpperCase()}</p>

@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
 interface NewItem {
   product_id: string;
@@ -48,6 +49,10 @@ export default function FacturesFournisseurs() {
   const [items, setItems] = useState<NewItem[]>([{ ...emptyItem }]);
 
   const [preview, setPreview] = useState<any>(null);
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+
+  const filteredFactures = filterByDateRange(factures, "date_facture", dateFrom, dateTo);
 
   const handleAddFournisseur = async () => {
     if (!fNom) { toast.error("Le nom est requis."); return; }
@@ -129,10 +134,11 @@ export default function FacturesFournisseurs() {
         <div>
           <h1 className="text-2xl font-bold">Factures Fournisseurs</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {factures.length} factures — {fournisseurs.length} fournisseurs
+            {filteredFactures.length} facture(s) {dateFrom || dateTo ? "filtrée(s)" : ""} — {fournisseurs.length} fournisseurs
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap items-center">
+          <DateFilter onFilter={(from, to) => { setDateFrom(from); setDateTo(to); }} />
           <Dialog open={showNewFournisseur} onOpenChange={setShowNewFournisseur}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2 border-border text-foreground">
@@ -227,7 +233,7 @@ export default function FacturesFournisseurs() {
           <span className="label-industrial text-right">Date</span>
           <span className="label-industrial text-right">Actions</span>
         </div>
-        {factures.map((f) => (
+        {filteredFactures.map((f) => (
           <motion.div key={f.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
             className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
             <p className="font-mono text-sm font-bold text-primary">{f.numero_facture || f.id.slice(0, 8).toUpperCase()}</p>
@@ -244,7 +250,7 @@ export default function FacturesFournisseurs() {
             </div>
           </motion.div>
         ))}
-        {factures.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune facture fournisseur.</p>}
+        {filteredFactures.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune facture fournisseur.</p>}
       </div>
 
       {/* Preview dialog */}
