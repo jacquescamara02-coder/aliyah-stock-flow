@@ -115,7 +115,7 @@ export default function FacturesFournisseurs() {
       .total-row{border-top:2px solid #000;font-weight:bold;font-size:16px}
       .footer{margin-top:40px;text-align:center;font-size:10px;opacity:.4}</style></head><body>
       <div style="display:flex;justify-content:space-between;margin-bottom:30px">
-        <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Facture Fournisseur</small></div></div>
+        <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Vente de Pièces Détachées de Moto</small></div></div>
         <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${facture.numero_facture || facture.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
       </div>
       <div style="margin-bottom:20px"><p style="font-size:10px;text-transform:uppercase;letter-spacing:2px;opacity:.5">Fournisseur</p><p style="font-weight:bold">${facture.fournisseur_nom}</p></div>
@@ -123,7 +123,7 @@ export default function FacturesFournisseurs() {
       ${(facture.items || []).map((i: any) => `<tr><td><small class="mono" style="opacity:.5">${i.reference}</small><br/>${i.nom}</td><td class="right mono">${i.quantite}</td><td class="right mono">${formatCFA(i.prix_unitaire)}</td><td class="right mono" style="font-weight:bold">${formatCFA(i.prix_unitaire * i.quantite)}</td></tr>`).join("")}
       </tbody></table>
       <div style="display:flex;justify-content:flex-end"><div style="width:250px"><div class="total-row" style="display:flex;justify-content:space-between;padding-top:8px"><span>TOTAL</span><span class="mono">${formatCFA(facture.total)}</span></div></div></div>
-      <p class="footer">ALIYAH SHOP — Facture Fournisseur</p></body></html>`);
+      <p class="footer">ALIYAH SHOP — Vente de Pièces Détachées de Moto</p></body></html>`);
     w.document.close();
     w.print();
   };
@@ -263,7 +263,7 @@ export default function FacturesFournisseurs() {
             <div className="mt-4">
               <div className="bg-foreground text-background p-8 rounded font-sans text-sm">
                 <div className="flex justify-between items-start mb-8">
-                  <div className="flex items-center gap-3"><img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-12 h-12 rounded-full object-cover" /><div><h2 className="text-xl font-bold">ALIYAH SHOP</h2><p className="text-xs opacity-60">Facture Fournisseur</p></div></div>
+                  <div className="flex items-center gap-3"><img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-12 h-12 rounded-full object-cover" /><div><h2 className="text-xl font-bold">ALIYAH SHOP</h2><p className="text-xs opacity-60">Vente de Pièces Détachées de Moto</p></div></div>
                   <div className="text-right">
                     <p className="font-mono font-bold text-lg">{preview.numero_facture || preview.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-xs opacity-60">{new Date(preview.date_facture).toLocaleDateString("fr-FR")}</p>
@@ -296,7 +296,7 @@ export default function FacturesFournisseurs() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Facture Fournisseur</div>
+                <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Vente de Pièces Détachées de Moto</div>
               </div>
               <Button onClick={() => handlePrint(preview)} className="w-full mt-4 bg-primary text-primary-foreground font-bold gap-2">
                 <Printer className="w-4 h-4" /> Imprimer

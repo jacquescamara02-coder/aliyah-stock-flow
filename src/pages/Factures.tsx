@@ -19,7 +19,7 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
           <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-14 h-14 rounded-full object-cover" />
           <div>
             <h2 className="text-xl font-bold">ALIYAH SHOP</h2>
-            <p className="text-xs opacity-60">Pièces Détachées Moto</p>
+            <p className="text-xs opacity-60">Vente de Pièces Détachées de Moto</p>
           </div>
         </div>
         <div className="text-right">
@@ -67,7 +67,7 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
       </div>
 
       <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">
-        ALIYAH SHOP — Merci pour votre confiance
+        ALIYAH SHOP — Vente de Pièces Détachées de Moto — Merci pour votre confiance
       </div>
     </div>
   );
@@ -93,7 +93,7 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
       .client-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; }
     </style></head><body>
     <div class="header">
-      <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Pièces Détachées Moto</small></div></div>
+      <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Vente de Pièces Détachées de Moto</small></div></div>
       <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${vente.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
     </div>
     <div class="client"><p class="client-label">Client</p><p style="font-weight:bold">${vente.client_nom}</p></div>
@@ -110,7 +110,7 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
         </div>
       </div>
     </div>
-    <p class="footer">ALIYAH SHOP — Merci pour votre confiance</p>
+    <p class="footer">ALIYAH SHOP — Vente de Pièces Détachées de Moto — Merci pour votre confiance</p>
     </body></html>`;
 }
 

@@ -42,8 +42,8 @@ export default function Login() {
           <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-20 h-20 rounded-full object-cover mx-auto ring-2 ring-primary/30 shadow-lg" />
           <div>
             <h1 className="text-2xl font-bold tracking-wide">ALIYAH SHOP</h1>
-            <p className="text-xs text-muted-foreground uppercase tracking-widest">
-              Gestion de Stock — Pièces Détachées
+            <p className="text-xs text-muted-foreground uppercase tracking-widest leading-tight">
+              Vente de Pièces Détachées de Moto
             </p>
           </div>
         </div>
