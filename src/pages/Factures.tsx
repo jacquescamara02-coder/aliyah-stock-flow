@@ -159,7 +159,12 @@ export default function Factures() {
           <h1 className="text-2xl font-bold">Factures Clients</h1>
           <p className="text-muted-foreground text-sm mt-1">{filtered.length} facture(s) {dateFrom || dateTo ? "filtrée(s)" : "générées"}</p>
         </div>
-        <DateFilter onFilter={(from, to) => { setDateFrom(from); setDateTo(to); }} />
+        <div className="flex items-center gap-3">
+          <DateFilter onFilter={(from, to) => { setDateFrom(from); setDateTo(to); }} />
+          <Button onClick={() => navigate("/ventes")} className="bg-primary text-primary-foreground font-bold gap-2">
+            <Plus className="w-4 h-4" /> Émettre une facture
+          </Button>
+        </div>
       </div>
 
       <div className="bg-card border border-border rounded overflow-hidden">
