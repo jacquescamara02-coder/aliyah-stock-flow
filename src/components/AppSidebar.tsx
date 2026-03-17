@@ -30,7 +30,7 @@ export function AppSidebar() {
     <aside className="w-[240px] min-h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30" />
+          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/30" />
           <div>
             <h1 className="font-bold text-foreground text-sm tracking-wide">ALIYAH SHOP</h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-tight">Vente de Pièces Détachées de Moto</p>

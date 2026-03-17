@@ -39,7 +39,7 @@ export default function Login() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center space-y-3">
-          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-20 h-20 rounded-full object-cover mx-auto ring-2 ring-primary/30 shadow-lg" />
+          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-28 h-28 rounded-full object-cover mx-auto ring-2 ring-primary/30 shadow-lg" />
           <div>
             <h1 className="text-2xl font-bold tracking-wide">ALIYAH SHOP</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-widest leading-tight">
