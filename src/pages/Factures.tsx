@@ -113,6 +113,10 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
 export default function Factures() {
   const { data: ventes = [] } = useVentes();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+
+  const filtered = filterByDateRange(ventes, "created_at", dateFrom, dateTo);
 
   const handlePrint = (vente: Vente & { items?: VenteItem[] }) => {
     const printWindow = window.open('', '_blank');
