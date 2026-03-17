@@ -80,13 +80,13 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   // Separator line
   doc.setDrawColor(...primaryColor);
   doc.setLineWidth(0.8);
-  doc.line(14, 36, 196, 36);
+  doc.line(14, 40, 196, 40);
 
   // === CLIENT / FOURNISSEUR ===
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(...grayColor);
-  doc.text(data.labelType.toUpperCase(), 14, 44);
+  doc.text(data.labelType.toUpperCase(), 14, 48);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
