@@ -36,6 +36,7 @@ function ProtectedRoutes() {
         <Route path="/ventes" element={<Ventes />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/factures" element={<Factures />} />
+        <Route path="/fournisseurs" element={<FacturesFournisseurs />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
