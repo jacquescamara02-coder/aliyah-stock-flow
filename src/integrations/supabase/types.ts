@@ -14,7 +14,190 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          adresse: string
+          created_at: string
+          id: string
+          nom: string
+          telephone: string
+          total_achats: number
+        }
+        Insert: {
+          adresse?: string
+          created_at?: string
+          id?: string
+          nom: string
+          telephone?: string
+          total_achats?: number
+        }
+        Update: {
+          adresse?: string
+          created_at?: string
+          id?: string
+          nom?: string
+          telephone?: string
+          total_achats?: number
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          name: string
+          prix_achat: number
+          prix_vente: number
+          reference: string
+          stock: number
+          stock_min: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          name: string
+          prix_achat?: number
+          prix_vente?: number
+          reference: string
+          stock?: number
+          stock_min?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          prix_achat?: number
+          prix_vente?: number
+          reference?: string
+          stock?: number
+          stock_min?: number
+        }
+        Relationships: []
+      }
+      stock_entries: {
+        Row: {
+          created_at: string
+          id: string
+          nom: string
+          prix_achat: number
+          product_id: string
+          quantite: number
+          reference: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nom: string
+          prix_achat: number
+          product_id: string
+          quantite: number
+          reference: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nom?: string
+          prix_achat?: number
+          product_id?: string
+          quantite?: number
+          reference?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_entries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vente_items: {
+        Row: {
+          id: string
+          nom: string
+          prix_achat: number
+          prix_unitaire: number
+          product_id: string
+          quantite: number
+          reference: string
+          vente_id: string
+        }
+        Insert: {
+          id?: string
+          nom: string
+          prix_achat: number
+          prix_unitaire: number
+          product_id: string
+          quantite: number
+          reference: string
+          vente_id: string
+        }
+        Update: {
+          id?: string
+          nom?: string
+          prix_achat?: number
+          prix_unitaire?: number
+          product_id?: string
+          quantite?: number
+          reference?: string
+          vente_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vente_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vente_items_vente_id_fkey"
+            columns: ["vente_id"]
+            isOneToOne: false
+            referencedRelation: "ventes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ventes: {
+        Row: {
+          client_id: string | null
+          client_nom: string
+          created_at: string
+          id: string
+          marge: number
+          total: number
+        }
+        Insert: {
+          client_id?: string | null
+          client_nom: string
+          created_at?: string
+          id?: string
+          marge?: number
+          total?: number
+        }
+        Update: {
+          client_id?: string | null
+          client_nom?: string
+          created_at?: string
+          id?: string
+          marge?: number
+          total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ventes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
