@@ -33,7 +33,7 @@ export function AppSidebar() {
           <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30" />
           <div>
             <h1 className="font-bold text-foreground text-sm tracking-wide">ALIYAH SHOP</h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Pièces Détachées</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-tight">Vente de Pièces Détachées de Moto</p>
           </div>
         </div>
       </div>

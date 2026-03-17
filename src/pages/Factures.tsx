@@ -110,7 +110,7 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
         </div>
       </div>
     </div>
-    <p class="footer">ALIYAH SHOP — Merci pour votre confiance</p>
+    <p class="footer">ALIYAH SHOP — Vente de Pièces Détachées de Moto — Merci pour votre confiance</p>
     </body></html>`;
 }
 
