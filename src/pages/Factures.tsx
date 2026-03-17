@@ -93,7 +93,7 @@ function buildInvoiceHTML(vente: Vente & { items?: VenteItem[] }) {
       .client-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; }
     </style></head><body>
     <div class="header">
-      <div><h2>ALIYAH SHOP</h2><small>Pièces Détachées Moto</small></div>
+      <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Pièces Détachées Moto</small></div></div>
       <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${vente.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
     </div>
     <div class="client"><p class="client-label">Client</p><p style="font-weight:bold">${vente.client_nom}</p></div>

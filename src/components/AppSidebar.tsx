@@ -30,9 +30,7 @@ export function AppSidebar() {
     <aside className="w-[240px] min-h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
-            <TrendingUp className="w-4 h-4 text-primary-foreground" />
-          </div>
+          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/30" />
           <div>
             <h1 className="font-bold text-foreground text-sm tracking-wide">ALIYAH SHOP</h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Pièces Détachées</p>
