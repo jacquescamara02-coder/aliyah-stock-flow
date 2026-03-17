@@ -123,7 +123,7 @@ export default function FacturesFournisseurs() {
       ${(facture.items || []).map((i: any) => `<tr><td><small class="mono" style="opacity:.5">${i.reference}</small><br/>${i.nom}</td><td class="right mono">${i.quantite}</td><td class="right mono">${formatCFA(i.prix_unitaire)}</td><td class="right mono" style="font-weight:bold">${formatCFA(i.prix_unitaire * i.quantite)}</td></tr>`).join("")}
       </tbody></table>
       <div style="display:flex;justify-content:flex-end"><div style="width:250px"><div class="total-row" style="display:flex;justify-content:space-between;padding-top:8px"><span>TOTAL</span><span class="mono">${formatCFA(facture.total)}</span></div></div></div>
-      <p class="footer">ALIYAH SHOP — Facture Fournisseur</p></body></html>`);
+      <p class="footer">ALIYAH SHOP — Vente de Pièces Détachées de Moto</p></body></html>`);
     w.document.close();
     w.print();
   };
