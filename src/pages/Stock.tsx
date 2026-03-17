@@ -12,6 +12,7 @@ export default function Stock() {
   const { data: products = [] } = useProducts();
   const addProduct = useAddProduct();
   const updateStock = useUpdateStock();
+  const deleteProduct = useDeleteProduct();
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [showEntry, setShowEntry] = useState<string | null>(null);
