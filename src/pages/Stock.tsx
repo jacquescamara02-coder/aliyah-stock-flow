@@ -1,20 +1,23 @@
 import { useState } from "react";
-import { useProducts, useAddProduct, useUpdateStock, useDeleteProduct } from "@/hooks/useProducts";
+import { useProducts, useAddProduct, useUpdateStock, useDeleteProduct, useBulkAddProducts } from "@/hooks/useProducts";
 import { formatCFA, getMarginPercent } from "@/lib/store";
 import { motion } from "framer-motion";
-import { Plus, Search, Package, Trash2 } from "lucide-react";
+import { Plus, Search, Package, Trash2, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import ExcelImport from "@/components/ExcelImport";
 
 export default function Stock() {
   const { data: products = [] } = useProducts();
   const addProduct = useAddProduct();
   const updateStock = useUpdateStock();
   const deleteProduct = useDeleteProduct();
+  const bulkAdd = useBulkAddProducts();
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [showEntry, setShowEntry] = useState<string | null>(null);
 
   const [newRef, setNewRef] = useState("");
@@ -79,12 +82,16 @@ export default function Stock() {
           <h1 className="text-2xl font-bold">Inventaire</h1>
           <p className="text-muted-foreground text-sm mt-1">{products.length} produits en stock</p>
         </div>
-        <Dialog open={showAdd} onOpenChange={setShowAdd}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground font-bold gap-2">
-              <Plus className="w-4 h-4" /> Nouveau Produit
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" className="border-border text-foreground font-bold gap-2" onClick={() => setShowImport(true)}>
+            <FileSpreadsheet className="w-4 h-4" /> Import Excel
+          </Button>
+          <Dialog open={showAdd} onOpenChange={setShowAdd}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary text-primary-foreground font-bold gap-2">
+                <Plus className="w-4 h-4" /> Nouveau Produit
+              </Button>
+            </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader><DialogTitle>Ajouter un Produit</DialogTitle></DialogHeader>
             <div className="space-y-4 mt-4">
@@ -131,6 +138,7 @@ export default function Stock() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="relative">
@@ -200,6 +208,14 @@ export default function Stock() {
         ))}
         {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Aucun produit trouvé.</p>}
       </div>
+
+      <ExcelImport
+        open={showImport}
+        onOpenChange={setShowImport}
+        onImport={async (rows) => {
+          await bulkAdd.mutateAsync(rows);
+        }}
+      />
     </div>
   );
 }
