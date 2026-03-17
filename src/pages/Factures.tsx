@@ -7,6 +7,7 @@ import { FileText, Printer, Eye, Share2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
 function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
   const date = new Date(vente.created_at).toLocaleDateString('fr-FR');
