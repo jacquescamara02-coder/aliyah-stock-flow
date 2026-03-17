@@ -138,6 +138,7 @@ export default function Stock() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="relative">
