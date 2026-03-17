@@ -115,7 +115,7 @@ export default function FacturesFournisseurs() {
       .total-row{border-top:2px solid #000;font-weight:bold;font-size:16px}
       .footer{margin-top:40px;text-align:center;font-size:10px;opacity:.4}</style></head><body>
       <div style="display:flex;justify-content:space-between;margin-bottom:30px">
-        <div><h2>ALIYAH SHOP</h2><small>Facture Fournisseur</small></div>
+        <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Facture Fournisseur</small></div></div>
         <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${facture.numero_facture || facture.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
       </div>
       <div style="margin-bottom:20px"><p style="font-size:10px;text-transform:uppercase;letter-spacing:2px;opacity:.5">Fournisseur</p><p style="font-weight:bold">${facture.fournisseur_nom}</p></div>
