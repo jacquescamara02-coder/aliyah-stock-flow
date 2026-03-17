@@ -172,7 +172,13 @@ export default function Factures() {
                 <Eye className="w-3 h-3" /> Voir
               </Button>
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handlePrint(v)}>
-                <Printer className="w-3 h-3" /> Imprimer
+                <Printer className="w-3 h-3" />
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleDownload(v)}>
+                <Download className="w-3 h-3" />
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleShare(v)}>
+                <Share2 className="w-3 h-3" />
               </Button>
             </div>
           </motion.div>
