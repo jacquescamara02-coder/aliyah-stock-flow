@@ -16,6 +16,7 @@ export default function Ventes() {
   const addToCart = useCartStore((s) => s.addToCart);
   const removeFromCart = useCartStore((s) => s.removeFromCart);
   const updateCartQuantity = useCartStore((s) => s.updateCartQuantity);
+  const updateCartPrice = useCartStore((s) => s.updateCartPrice);
   const setSelectedClient = useCartStore((s) => s.setSelectedClient);
   const clearCart = useCartStore((s) => s.clearCart);
   const confirmVente = useConfirmVente();
