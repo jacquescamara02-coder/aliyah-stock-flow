@@ -152,9 +152,12 @@ export default function Factures() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Factures</h1>
-        <p className="text-muted-foreground text-sm mt-1">{ventes.length} factures générées</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Factures Clients</h1>
+          <p className="text-muted-foreground text-sm mt-1">{filtered.length} facture(s) {dateFrom || dateTo ? "filtrée(s)" : "générées"}</p>
+        </div>
+        <DateFilter onFilter={(from, to) => { setDateFrom(from); setDateTo(to); }} />
       </div>
 
       <div className="bg-card border border-border rounded overflow-hidden">
