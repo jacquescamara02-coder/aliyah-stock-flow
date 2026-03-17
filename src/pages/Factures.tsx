@@ -19,7 +19,7 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
           <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-14 h-14 rounded-full object-cover" />
           <div>
             <h2 className="text-xl font-bold">ALIYAH SHOP</h2>
-            <p className="text-xs opacity-60">Pièces Détachées Moto</p>
+            <p className="text-xs opacity-60">Vente de Pièces Détachées de Moto</p>
           </div>
         </div>
         <div className="text-right">
