@@ -193,9 +193,17 @@ export default function Factures() {
           {preview && (
             <div className="mt-4">
               <InvoicePreview vente={preview} />
-              <Button onClick={() => handlePrint(preview)} className="w-full mt-4 bg-primary text-primary-foreground font-bold gap-2">
-                <Printer className="w-4 h-4" /> Imprimer la Facture
-              </Button>
+              <div className="flex gap-2 mt-4">
+                <Button onClick={() => handlePrint(preview)} className="flex-1 bg-primary text-primary-foreground font-bold gap-2">
+                  <Printer className="w-4 h-4" /> Imprimer
+                </Button>
+                <Button onClick={() => handleDownload(preview)} variant="outline" className="flex-1 gap-2 border-border text-foreground">
+                  <Download className="w-4 h-4" /> Télécharger
+                </Button>
+                <Button onClick={() => handleShare(preview)} variant="outline" className="gap-2 border-border text-foreground">
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

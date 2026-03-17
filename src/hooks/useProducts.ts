@@ -67,3 +67,14 @@ export function useUpdateStock() {
     },
   });
 }
+
+export function useDeleteProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      const { error } = await supabase.from("products").delete().eq("id", productId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
+}

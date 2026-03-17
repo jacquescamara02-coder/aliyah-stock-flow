@@ -159,21 +159,43 @@ export default function Stock() {
             <p className="font-mono text-sm text-right">{formatCFA(p.prix_vente)}</p>
             <p className={`font-mono text-lg text-right font-bold ${p.stock <= p.stock_min ? "text-destructive" : ""}`}>{p.stock}</p>
             <p className="font-mono text-lg text-right text-primary font-bold">{getMarginPercent(p.prix_achat, p.prix_vente)}%</p>
-            <Dialog open={showEntry === p.id} onOpenChange={(open) => { setShowEntry(open ? p.id : null); if (open) setEntryPrix(String(p.prix_achat)); }}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="gap-1 border-border text-foreground"><Package className="w-3 h-3" /> Entrée</Button>
-              </DialogTrigger>
-              <DialogContent className="bg-card border-border">
-                <DialogHeader><DialogTitle>Entrée de Stock — {p.name}</DialogTitle></DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div><label className="label-industrial">Quantité</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryQty} onChange={(e) => setEntryQty(e.target.value)} /></div>
-                  <div><label className="label-industrial">Prix d'achat unitaire (FCFA)</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryPrix} onChange={(e) => setEntryPrix(e.target.value)} /></div>
-                  <Button onClick={handleEntry} disabled={updateStock.isPending} className="w-full bg-primary text-primary-foreground font-bold">
-                    {updateStock.isPending ? "Mise à jour..." : "Confirmer l'entrée"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-1 justify-end">
+              <Dialog open={showEntry === p.id} onOpenChange={(open) => { setShowEntry(open ? p.id : null); if (open) setEntryPrix(String(p.prix_achat)); }}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="gap-1 border-border text-foreground"><Package className="w-3 h-3" /> Entrée</Button>
+                </DialogTrigger>
+                <DialogContent className="bg-card border-border">
+                  <DialogHeader><DialogTitle>Entrée de Stock — {p.name}</DialogTitle></DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div><label className="label-industrial">Quantité</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryQty} onChange={(e) => setEntryQty(e.target.value)} /></div>
+                    <div><label className="label-industrial">Prix d'achat unitaire (FCFA)</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryPrix} onChange={(e) => setEntryPrix(e.target.value)} /></div>
+                    <Button onClick={handleEntry} disabled={updateStock.isPending} className="w-full bg-primary text-primary-foreground font-bold">
+                      {updateStock.isPending ? "Mise à jour..." : "Confirmer l'entrée"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="w-3 h-3" /></Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer {p.name} ?</AlertDialogTitle>
+                    <AlertDialogDescription>Cette action est irréversible. Le produit sera définitivement supprimé.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
+                    <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+                      try {
+                        await deleteProduct.mutateAsync(p.id);
+                        toast.success(`"${p.name}" supprimé.`);
+                      } catch (e: any) { toast.error(e.message); }
+                    }}>Supprimer</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </motion.div>
         ))}
         {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Aucun produit trouvé.</p>}
