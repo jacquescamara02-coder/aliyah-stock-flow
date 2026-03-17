@@ -69,6 +69,7 @@ interface CartState {
   addToCart: (product: Product, quantite: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantite: number) => void;
+  updateCartPrice: (productId: string, prixUnitaire: number) => void;
   clearCart: () => void;
   setSelectedClient: (clientId: string | null) => void;
 }
