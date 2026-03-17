@@ -114,50 +114,35 @@ export default function Factures() {
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
 
   const handlePrint = (vente: Vente & { items?: VenteItem[] }) => {
-    const date = new Date(vente.created_at).toLocaleDateString('fr-FR');
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
-    printWindow.document.write(`
-      <html><head><title>Facture ${vente.id.slice(0, 8)}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; padding: 40px; font-size: 13px; }
-        h2 { font-size: 20px; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { padding: 8px; text-align: left; }
-        th { border-bottom: 2px solid #000; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; }
-        td { border-bottom: 1px solid #eee; }
-        .right { text-align: right; }
-        .mono { font-family: 'Courier New', monospace; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .total-row { border-top: 2px solid #000; font-weight: bold; font-size: 16px; }
-        .footer { margin-top: 40px; text-align: center; font-size: 10px; opacity: 0.4; }
-        .client { margin-bottom: 20px; }
-        .client-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; }
-      </style></head><body>
-      <div class="header">
-        <div><h2>ALIYAH SHOP</h2><small>Pièces Détachées Moto</small></div>
-        <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${vente.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
-      </div>
-      <div class="client"><p class="client-label">Client</p><p style="font-weight:bold">${vente.client_nom}</p></div>
-      <table>
-        <thead><tr><th>Désignation</th><th class="right">Qté</th><th class="right">P.U.</th><th class="right">Total</th></tr></thead>
-        <tbody>
-          ${(vente.items || []).map(i => `<tr><td><small class="mono" style="opacity:0.5">${i.reference}</small><br/>${i.nom}</td><td class="right mono">${i.quantite}</td><td class="right mono">${formatCFA(i.prix_unitaire)}</td><td class="right mono" style="font-weight:bold">${formatCFA(i.prix_unitaire * i.quantite)}</td></tr>`).join('')}
-        </tbody>
-      </table>
-      <div style="display:flex;justify-content:flex-end">
-        <div style="width:250px">
-          <div class="total-row" style="display:flex;justify-content:space-between;padding-top:8px">
-            <span>TOTAL</span><span class="mono">${formatCFA(vente.total)}</span>
-          </div>
-        </div>
-      </div>
-      <p class="footer">ALIYAH SHOP — Merci pour votre confiance</p>
-      </body></html>
-    `);
+    printWindow.document.write(buildInvoiceHTML(vente));
     printWindow.document.close();
     printWindow.print();
+  };
+
+  const handleDownload = (vente: Vente & { items?: VenteItem[] }) => {
+    const html = buildInvoiceHTML(vente);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Facture_${vente.id.slice(0, 8).toUpperCase()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Facture téléchargée.");
+  };
+
+  const handleShare = async (vente: Vente & { items?: VenteItem[] }) => {
+    const text = `Facture ALIYAH SHOP\nN°: ${vente.id.slice(0, 8).toUpperCase()}\nClient: ${vente.client_nom}\nTotal: ${formatCFA(vente.total)}\nDate: ${new Date(vente.created_at).toLocaleDateString('fr-FR')}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Facture ${vente.id.slice(0, 8).toUpperCase()}`, text });
+      } catch { /* user cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success("Détails de la facture copiés dans le presse-papier.");
+    }
   };
 
   return (
