@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useVentes } from "@/hooks/useVentes";
+import { useVentes, useDeleteVente } from "@/hooks/useVentes";
 import { formatCFA } from "@/lib/store";
 import type { Vente, VenteItem } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
