@@ -109,6 +109,12 @@ export default function Ventes() {
                   <label className="label-industrial">Qté</label>
                   <input type="number" min={1} value={item.quantite} onChange={(e) => updateCartQuantity(item.productId, Math.max(1, Number(e.target.value)))} className="input-underline w-16 font-mono text-center" />
                 </div>
+                <div className="flex items-center gap-2">
+                  <label className="label-industrial">Prix</label>
+                  <input type="number" min={0} value={item.prixUnitaire} onChange={(e) => updateCartPrice(item.productId, Math.max(0, Number(e.target.value)))} className="input-underline w-24 font-mono text-right" />
+                </div>
+              </div>
+              <div className="text-right">
                 <p className="font-mono text-sm font-bold">{formatCFA(item.prixUnitaire * item.quantite)}</p>
               </div>
             </div>

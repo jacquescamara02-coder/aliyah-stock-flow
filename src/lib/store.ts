@@ -118,6 +118,14 @@ export const useCartStore = create<CartState>((set) => ({
     }));
   },
 
+  updateCartPrice: (productId, prixUnitaire) => {
+    set((state) => ({
+      cart: state.cart.map((i) =>
+        i.productId === productId ? { ...i, prixUnitaire } : i
+      ),
+    }));
+  },
+
   clearCart: () => set({ cart: [], selectedClientId: null }),
   setSelectedClient: (clientId) => set({ selectedClientId: clientId }),
 }));
