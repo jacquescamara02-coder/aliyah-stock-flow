@@ -102,7 +102,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   ]);
 
   autoTable(doc, {
-    startY: 58,
+    startY: 62,
     head: [["DÉSIGNATION", "QTÉ", "PRIX UNITAIRE", "TOTAL"]],
     body: tableData,
     theme: "plain",
