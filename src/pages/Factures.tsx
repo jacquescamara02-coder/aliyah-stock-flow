@@ -67,7 +67,7 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
       </div>
 
       <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">
-        ALIYAH SHOP — Merci pour votre confiance
+        ALIYAH SHOP — Vente de Pièces Détachées de Moto — Merci pour votre confiance
       </div>
     </div>
   );

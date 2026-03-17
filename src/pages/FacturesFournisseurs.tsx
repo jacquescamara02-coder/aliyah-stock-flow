@@ -296,7 +296,7 @@ export default function FacturesFournisseurs() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Facture Fournisseur</div>
+                <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Vente de Pièces Détachées de Moto</div>
               </div>
               <Button onClick={() => handlePrint(preview)} className="w-full mt-4 bg-primary text-primary-foreground font-bold gap-2">
                 <Printer className="w-4 h-4" /> Imprimer
