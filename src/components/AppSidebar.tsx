@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Users,
   FileText,
+  Truck,
   TrendingUp,
   LogOut,
 } from "lucide-react";
