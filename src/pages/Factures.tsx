@@ -168,7 +168,7 @@ export default function Factures() {
           <span className="label-industrial text-right">Date</span>
           <span className="label-industrial text-right">Actions</span>
         </div>
-        {ventes.map((v) => (
+        {filtered.map((v) => (
           <motion.div key={v.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
             className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
             <p className="font-mono text-sm font-bold text-primary">{v.id.slice(0, 8).toUpperCase()}</p>

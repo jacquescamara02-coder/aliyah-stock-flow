@@ -250,7 +250,7 @@ export default function FacturesFournisseurs() {
             </div>
           </motion.div>
         ))}
-        {factures.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune facture fournisseur.</p>}
+        {filteredFactures.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune facture fournisseur.</p>}
       </div>
 
       {/* Preview dialog */}
