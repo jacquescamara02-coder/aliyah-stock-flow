@@ -49,6 +49,10 @@ export default function FacturesFournisseurs() {
   const [items, setItems] = useState<NewItem[]>([{ ...emptyItem }]);
 
   const [preview, setPreview] = useState<any>(null);
+  const [dateFrom, setDateFrom] = useState<Date>();
+  const [dateTo, setDateTo] = useState<Date>();
+
+  const filteredFactures = filterByDateRange(factures, "date_facture", dateFrom, dateTo);
 
   const handleAddFournisseur = async () => {
     if (!fNom) { toast.error("Le nom est requis."); return; }
