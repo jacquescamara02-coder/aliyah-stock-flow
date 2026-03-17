@@ -39,9 +39,7 @@ export default function Login() {
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded bg-primary flex items-center justify-center mx-auto">
-            <TrendingUp className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-20 h-20 rounded-full object-cover mx-auto ring-2 ring-primary/30 shadow-lg" />
           <div>
             <h1 className="text-2xl font-bold tracking-wide">ALIYAH SHOP</h1>
             <p className="text-xs text-muted-foreground uppercase tracking-widest">

@@ -115,7 +115,7 @@ export default function FacturesFournisseurs() {
       .total-row{border-top:2px solid #000;font-weight:bold;font-size:16px}
       .footer{margin-top:40px;text-align:center;font-size:10px;opacity:.4}</style></head><body>
       <div style="display:flex;justify-content:space-between;margin-bottom:30px">
-        <div><h2>ALIYAH SHOP</h2><small>Facture Fournisseur</small></div>
+        <div style="display:flex;align-items:center;gap:12px"><img src="${window.location.origin}/images/logo-aliyah.jpeg" style="width:50px;height:50px;border-radius:50%;object-fit:cover" /><div><h2>ALIYAH SHOP</h2><small>Facture Fournisseur</small></div></div>
         <div style="text-align:right"><p class="mono" style="font-size:16px;font-weight:bold">${facture.numero_facture || facture.id.slice(0, 8).toUpperCase()}</p><small>${date}</small></div>
       </div>
       <div style="margin-bottom:20px"><p style="font-size:10px;text-transform:uppercase;letter-spacing:2px;opacity:.5">Fournisseur</p><p style="font-weight:bold">${facture.fournisseur_nom}</p></div>
@@ -263,7 +263,7 @@ export default function FacturesFournisseurs() {
             <div className="mt-4">
               <div className="bg-foreground text-background p-8 rounded font-sans text-sm">
                 <div className="flex justify-between items-start mb-8">
-                  <div><h2 className="text-xl font-bold">ALIYAH SHOP</h2><p className="text-xs opacity-60">Facture Fournisseur</p></div>
+                  <div className="flex items-center gap-3"><img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-12 h-12 rounded-full object-cover" /><div><h2 className="text-xl font-bold">ALIYAH SHOP</h2><p className="text-xs opacity-60">Facture Fournisseur</p></div></div>
                   <div className="text-right">
                     <p className="font-mono font-bold text-lg">{preview.numero_facture || preview.id.slice(0, 8).toUpperCase()}</p>
                     <p className="text-xs opacity-60">{new Date(preview.date_facture).toLocaleDateString("fr-FR")}</p>
