@@ -63,12 +63,13 @@ export function AppSidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border space-y-3">
+      <div className="p-4 border-t border-sidebar-border space-y-1">
         {user && (
-          <div className="px-3">
+          <div className="px-3 pb-2">
             <p className="text-xs text-muted-foreground truncate">{user.email}</p>
           </div>
         )}
+        <ThemeSwitcher />
         <button
           onClick={signOut}
           className="flex items-center gap-3 px-3 py-2.5 rounded text-sm w-full text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground transition-colors"
@@ -76,7 +77,7 @@ export function AppSidebar() {
           <LogOut className="w-4 h-4" />
           <span>Déconnexion</span>
         </button>
-        <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest">
+        <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest pt-2">
           v1.0 — Gestion de Stock
         </p>
       </div>
