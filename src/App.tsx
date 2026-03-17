@@ -9,6 +9,7 @@ import Stock from "./pages/Stock";
 import Ventes from "./pages/Ventes";
 import Clients from "./pages/Clients";
 import Factures from "./pages/Factures";
+import FacturesFournisseurs from "./pages/FacturesFournisseurs";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
