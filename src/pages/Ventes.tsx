@@ -22,6 +22,7 @@ export default function Ventes() {
   const confirmVente = useConfirmVente();
 
   const [search, setSearch] = useState("");
+  const [impaye, setImpaye] = useState(false);
 
   const filtered = products.filter(
     (p) =>
@@ -38,14 +39,14 @@ export default function Ventes() {
     if (!client) { toast.error("Veuillez sélectionner un client."); return; }
     if (cart.length === 0) { toast.error("Le panier est vide."); return; }
     try {
-      await confirmVente.mutateAsync({ cart, client });
+      await confirmVente.mutateAsync({ cart, client, statut_paiement: impaye ? "impayé" : "payé" });
       toast.success(`Vente confirmée. Total : ${formatCFA(cartTotal)}`);
       clearCart();
+      setImpaye(false);
     } catch (e: any) {
       toast.error(e.message);
     }
   };
-
   return (
     <div className="grid grid-cols-[1fr_380px] gap-6 h-[calc(100vh-8rem)]">
       <div className="space-y-4 overflow-hidden flex flex-col">
