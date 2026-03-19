@@ -39,6 +39,8 @@ export interface Vente {
   client_nom: string;
   total: number;
   marge: number;
+  montant_paye: number;
+  statut_paiement: string;
   created_at: string;
   items?: VenteItem[];
 }
