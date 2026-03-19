@@ -269,7 +269,8 @@ export default function Factures() {
 
   const handleWhatsApp = (vente: Vente & { items?: VenteItem[] }) => {
     const client = clients.find(c => c.id === vente.client_id);
-    const phone = client?.telephone?.replace(/\s/g, "").replace(/^0/, "225");
+    const rawPhone = client?.telephone?.replace(/\s/g, "");
+    const phone = rawPhone ? rawPhone.replace(/^0/, "225") : "2250759095959";
     
     const text = `📄 *FACTURE ALIYAH SHOP*\n\n` +
       `N°: ${vente.id.slice(0, 8).toUpperCase()}\n` +
