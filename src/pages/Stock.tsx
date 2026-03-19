@@ -158,12 +158,12 @@ export default function Stock() {
         </div>
         {filtered.map((p) => (
           <motion.div key={p.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-            className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
+            className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
             <div>
               <span className="text-xs text-muted-foreground font-mono">{p.reference}</span>
               <p className="font-medium">{p.name}</p>
-              <span className="text-xs text-muted-foreground">{p.category}</span>
             </div>
+            <span className="text-xs text-muted-foreground">{p.category || "—"}</span>
             <p className="font-mono text-sm text-right">{formatCFA(p.prix_achat)}</p>
             <p className="font-mono text-sm text-right">{formatCFA(p.prix_vente)}</p>
             <p className={`font-mono text-lg text-right font-bold ${p.stock <= p.stock_min ? "text-destructive" : ""}`}>{p.stock}</p>
