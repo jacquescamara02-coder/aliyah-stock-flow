@@ -41,6 +41,33 @@ export type Database = {
         }
         Relationships: []
       }
+      depenses: {
+        Row: {
+          categorie: string
+          created_at: string
+          date_depense: string
+          description: string
+          id: string
+          montant: number
+        }
+        Insert: {
+          categorie?: string
+          created_at?: string
+          date_depense?: string
+          description: string
+          id?: string
+          montant?: number
+        }
+        Update: {
+          categorie?: string
+          created_at?: string
+          date_depense?: string
+          description?: string
+          id?: string
+          montant?: number
+        }
+        Relationships: []
+      }
       facture_fournisseur_items: {
         Row: {
           created_at: string
@@ -280,6 +307,7 @@ export type Database = {
           created_at: string
           id: string
           marge: number
+          statut_paiement: string
           total: number
         }
         Insert: {
@@ -288,6 +316,7 @@ export type Database = {
           created_at?: string
           id?: string
           marge?: number
+          statut_paiement?: string
           total?: number
         }
         Update: {
@@ -296,6 +325,7 @@ export type Database = {
           created_at?: string
           id?: string
           marge?: number
+          statut_paiement?: string
           total?: number
         }
         Relationships: [

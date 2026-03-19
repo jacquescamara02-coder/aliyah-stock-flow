@@ -22,6 +22,7 @@ export default function Ventes() {
   const confirmVente = useConfirmVente();
 
   const [search, setSearch] = useState("");
+  const [impaye, setImpaye] = useState(false);
 
   const filtered = products.filter(
     (p) =>
@@ -38,14 +39,14 @@ export default function Ventes() {
     if (!client) { toast.error("Veuillez sélectionner un client."); return; }
     if (cart.length === 0) { toast.error("Le panier est vide."); return; }
     try {
-      await confirmVente.mutateAsync({ cart, client });
+      await confirmVente.mutateAsync({ cart, client, statut_paiement: impaye ? "impayé" : "payé" });
       toast.success(`Vente confirmée. Total : ${formatCFA(cartTotal)}`);
       clearCart();
+      setImpaye(false);
     } catch (e: any) {
       toast.error(e.message);
     }
   };
-
   return (
     <div className="grid grid-cols-[1fr_380px] gap-6 h-[calc(100vh-8rem)]">
       <div className="space-y-4 overflow-hidden flex flex-col">
@@ -129,6 +130,10 @@ export default function Ventes() {
             <span className="label-industrial">Marge</span>
             <span className="font-mono text-lg text-primary font-bold">{formatCFA(cartMarge)}</span>
           </div>
+          <label className="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" checked={impaye} onChange={(e) => setImpaye(e.target.checked)} className="rounded border-input" />
+            <span className={impaye ? "text-destructive font-medium" : "text-muted-foreground"}>Marchandise non payée (à crédit)</span>
+          </label>
           <Button onClick={handleConfirm} disabled={cart.length === 0 || !selectedClientId || confirmVente.isPending}
             className="w-full bg-primary text-primary-foreground font-bold gap-2">
             <Check className="w-4 h-4" /> {confirmVente.isPending ? "Validation..." : "Valider la Vente"}
