@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useVentes, useDeleteVente } from "@/hooks/useVentes";
+import { useVentes, useDeleteVente, useUpdateVente } from "@/hooks/useVentes";
+import { useProducts } from "@/hooks/useProducts";
+import { useClients } from "@/hooks/useClients";
 import { formatCFA } from "@/lib/store";
-import type { Vente, VenteItem } from "@/lib/store";
+import type { Vente, VenteItem, CartItem } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
-import { FileText, Printer, Eye, Share2, Download, Plus, MessageCircle, Mail, Trash2 } from "lucide-react";
+import { FileText, Printer, Eye, Download, Plus, MessageCircle, Mail, Trash2, Pencil, Search, ShoppingCart, Trash2 as Trash2Icon, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -29,12 +31,10 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
           <p className="text-xs opacity-60">{date}</p>
         </div>
       </div>
-
       <div className="mb-6">
         <p className="text-xs uppercase tracking-widest opacity-50 mb-1">Client</p>
         <p className="font-bold">{vente.client_nom}</p>
       </div>
-
       <table className="w-full mb-6">
         <thead>
           <tr className="border-b-2 border-background/20">
@@ -58,7 +58,6 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
           ))}
         </tbody>
       </table>
-
       <div className="flex justify-end">
         <div className="w-64 space-y-2">
           <div className="flex justify-between border-t-2 border-background/20 pt-2">
@@ -67,7 +66,6 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
           </div>
         </div>
       </div>
-
       <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">
         ALIYAH SHOP — Hire Ouatta — Tél : 07 59 09 59 59 / 05 74 98 02 68
       </div>
@@ -91,11 +89,154 @@ async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
   });
 }
 
+// Edit invoice dialog component
+function EditInvoiceDialog({ vente, open, onClose }: { vente: Vente & { items?: VenteItem[] }; open: boolean; onClose: () => void }) {
+  const { data: products = [] } = useProducts();
+  const { data: clients = [] } = useClients();
+  const updateVente = useUpdateVente();
+
+  const [editCart, setEditCart] = useState<CartItem[]>(
+    (vente.items || []).map(i => ({
+      productId: i.product_id,
+      reference: i.reference,
+      nom: i.nom,
+      quantite: i.quantite,
+      prixUnitaire: i.prix_unitaire,
+      prixAchat: i.prix_achat,
+    }))
+  );
+  const [editClientId, setEditClientId] = useState(vente.client_id || "");
+  const [search, setSearch] = useState("");
+
+  const filtered = products.filter(
+    (p) =>
+      (p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.reference.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase())) &&
+      !editCart.find(c => c.productId === p.id)
+  );
+
+  const addProduct = (p: typeof products[0]) => {
+    setEditCart(prev => [...prev, {
+      productId: p.id,
+      reference: p.reference,
+      nom: p.name,
+      quantite: 1,
+      prixUnitaire: p.prix_vente,
+      prixAchat: p.prix_achat,
+    }]);
+  };
+
+  const removeItem = (productId: string) => {
+    setEditCart(prev => prev.filter(i => i.productId !== productId));
+  };
+
+  const updateQty = (productId: string, qty: number) => {
+    setEditCart(prev => prev.map(i => i.productId === productId ? { ...i, quantite: Math.max(1, qty) } : i));
+  };
+
+  const updatePrice = (productId: string, price: number) => {
+    setEditCart(prev => prev.map(i => i.productId === productId ? { ...i, prixUnitaire: Math.max(0, price) } : i));
+  };
+
+  const total = editCart.reduce((s, i) => s + i.prixUnitaire * i.quantite, 0);
+
+  const handleSave = async () => {
+    const client = clients.find(c => c.id === editClientId);
+    if (!client) { toast.error("Sélectionnez un client"); return; }
+    if (editCart.length === 0) { toast.error("La facture ne peut pas être vide"); return; }
+    try {
+      await updateVente.mutateAsync({ venteId: vente.id, cart: editCart, client });
+      toast.success("Facture modifiée avec succès");
+      onClose();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={() => onClose()}>
+      <DialogContent className="bg-card border-border max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Pencil className="w-4 h-4 text-primary" /> Modifier Facture {vente.id.slice(0, 8).toUpperCase()}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          {/* Client */}
+          <div>
+            <label className="label-industrial">Client</label>
+            <select className="input-underline w-full mt-1 bg-transparent" value={editClientId} onChange={(e) => setEditClientId(e.target.value)}>
+              <option value="" className="bg-card">Sélectionner un client</option>
+              {clients.map((c) => (<option key={c.id} value={c.id} className="bg-card">{c.nom}</option>))}
+            </select>
+          </div>
+
+          {/* Current items */}
+          <div>
+            <label className="label-industrial">Articles de la facture</label>
+            <div className="space-y-2 mt-2">
+              {editCart.map((item) => (
+                <div key={item.productId} className="border border-border rounded p-3 flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-xs font-mono text-muted-foreground">{item.reference}</p>
+                    <p className="text-sm font-medium">{item.nom}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="label-industrial text-xs">Qté</label>
+                    <input type="number" min={1} value={item.quantite} onChange={(e) => updateQty(item.productId, Number(e.target.value))} className="input-underline w-16 font-mono text-center text-sm" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="label-industrial text-xs">Prix</label>
+                    <input type="number" min={0} value={item.prixUnitaire} onChange={(e) => updatePrice(item.productId, Number(e.target.value))} className="input-underline w-24 font-mono text-right text-sm" />
+                  </div>
+                  <p className="font-mono text-sm font-bold w-24 text-right">{formatCFA(item.prixUnitaire * item.quantite)}</p>
+                  <button onClick={() => removeItem(item.productId)} className="text-muted-foreground hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Add product */}
+          <div>
+            <label className="label-industrial">Ajouter un article</label>
+            <div className="relative mt-1">
+              <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input className="input-underline w-full pl-6" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            {search && (
+              <div className="border border-border rounded mt-1 max-h-32 overflow-y-auto">
+                {filtered.slice(0, 5).map(p => (
+                  <div key={p.id} className="p-2 hover:bg-muted/50 cursor-pointer text-sm flex justify-between" onClick={() => { addProduct(p); setSearch(""); }}>
+                    <span>{p.reference} — {p.name} <span className="text-muted-foreground text-xs">({p.category})</span></span>
+                    <span className="font-mono">{formatCFA(p.prix_vente)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Total + save */}
+          <div className="flex items-center justify-between pt-2 border-t border-border">
+            <div>
+              <span className="label-industrial">Total : </span>
+              <span className="font-mono text-xl font-bold">{formatCFA(total)}</span>
+            </div>
+            <Button onClick={handleSave} disabled={updateVente.isPending} className="bg-primary text-primary-foreground font-bold gap-2">
+              <Check className="w-4 h-4" /> {updateVente.isPending ? "Sauvegarde..." : "Sauvegarder"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Factures() {
   const navigate = useNavigate();
   const { data: ventes = [] } = useVentes();
+  const { data: clients = [] } = useClients();
   const deleteVente = useDeleteVente();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
+  const [editVente, setEditVente] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
 
@@ -126,7 +267,10 @@ export default function Factures() {
     }
   };
 
-  const handleWhatsApp = async (vente: Vente & { items?: VenteItem[] }) => {
+  const handleWhatsApp = (vente: Vente & { items?: VenteItem[] }) => {
+    const client = clients.find(c => c.id === vente.client_id);
+    const phone = client?.telephone?.replace(/\s/g, "").replace(/^0/, "225");
+    
     const text = `📄 *FACTURE ALIYAH SHOP*\n\n` +
       `N°: ${vente.id.slice(0, 8).toUpperCase()}\n` +
       `Client: ${vente.client_nom}\n` +
@@ -136,8 +280,10 @@ export default function Factures() {
       ).join('\n') +
       `\n\n*TOTAL: ${formatCFA(vente.total)}*\n\nMerci pour votre confiance ! 🙏`;
 
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(whatsappUrl, '_blank');
+    const url = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
   const handleEmail = async (vente: Vente & { items?: VenteItem[] }) => {
@@ -187,6 +333,9 @@ export default function Factures() {
             <p className="font-mono text-sm text-right font-bold">{formatCFA(v.total)}</p>
             <p className="font-mono text-xs text-muted-foreground text-right">{new Date(v.created_at).toLocaleDateString('fr-FR')}</p>
             <div className="flex gap-1 justify-end">
+              <Button size="sm" variant="outline" className="gap-1 border-primary/30 text-primary hover:bg-primary/10" onClick={() => setEditVente(v)} title="Modifier">
+                <Pencil className="w-3 h-3" />
+              </Button>
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => setPreview(v)}>
                 <Eye className="w-3 h-3" />
               </Button>
@@ -229,6 +378,7 @@ export default function Factures() {
         ))}
       </div>
 
+      {/* Preview Dialog */}
       <Dialog open={!!preview} onOpenChange={() => setPreview(null)}>
         <DialogContent className="bg-card border-border max-w-2xl">
           <DialogHeader>
@@ -255,6 +405,11 @@ export default function Factures() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Dialog */}
+      {editVente && (
+        <EditInvoiceDialog vente={editVente} open={!!editVente} onClose={() => setEditVente(null)} />
+      )}
     </div>
   );
 }
