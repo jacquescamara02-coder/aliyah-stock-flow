@@ -147,8 +147,9 @@ export default function Stock() {
       </div>
 
       <div className="bg-card border border-border rounded overflow-hidden">
-        <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto] gap-4 p-4 border-b border-border">
+        <div className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 p-4 border-b border-border">
           <span className="label-industrial">Produit</span>
+          <span className="label-industrial">Catégorie</span>
           <span className="label-industrial text-right">Prix Achat</span>
           <span className="label-industrial text-right">Prix Vente</span>
           <span className="label-industrial text-right">Stock</span>
