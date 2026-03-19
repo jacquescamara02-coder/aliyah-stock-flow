@@ -51,7 +51,8 @@ export default function Impayes() {
 
   const handleWhatsApp = (vente: Vente & { items?: VenteItem[] }) => {
     const client = clients.find(c => c.id === vente.client_id);
-    const phone = client?.telephone?.replace(/\s/g, "").replace(/^0/, "225");
+    const rawPhone = client?.telephone?.replace(/\s/g, "");
+    const phone = rawPhone ? rawPhone.replace(/^0/, "225") : "2250759095959";
     const reste = vente.total - (vente.montant_paye || 0);
     
     const text = `📄 *FACTURE ALIYAH SHOP*\n\n` +
