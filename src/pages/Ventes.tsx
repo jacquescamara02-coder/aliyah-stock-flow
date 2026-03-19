@@ -27,7 +27,8 @@ export default function Ventes() {
   const filtered = products.filter(
     (p) =>
       (p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.reference.toLowerCase().includes(search.toLowerCase())) &&
+        p.reference.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase())) &&
       p.stock > 0
   );
 
