@@ -13,6 +13,8 @@ export default function Dashboard() {
   const { data: stockEntries = [] } = useStockEntries();
 
   const valeurStock = products.reduce((sum, p) => sum + p.prix_vente * p.stock, 0);
+  const totalAchat = products.reduce((sum, p) => sum + p.prix_achat * p.stock, 0);
+  const totalVente = products.reduce((sum, p) => sum + p.prix_vente * p.stock, 0);
   const margeNette = ventes.reduce((sum, v) => sum + v.marge, 0);
   const alertes = products.filter((p) => p.stock <= p.stock_min).length;
   const ventesTotal = ventes.reduce((sum, v) => sum + v.total, 0);
