@@ -16,11 +16,13 @@ import {
   LogOut,
   Wallet,
   AlertCircle,
+  ArrowLeftRight,
 } from "lucide-react";
 
 const navItems = [
   { title: "Tableau de Bord", url: "/", icon: LayoutDashboard },
   { title: "Stock", url: "/stock", icon: Package },
+  { title: "Mouvements Stock", url: "/mouvements-stock", icon: ArrowLeftRight },
   { title: "Ventes", url: "/ventes", icon: ShoppingCart },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Factures Clients", url: "/factures", icon: FileText },

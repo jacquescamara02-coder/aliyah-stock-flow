@@ -12,6 +12,7 @@ import Factures from "./pages/Factures";
 import FacturesFournisseurs from "./pages/FacturesFournisseurs";
 import Depenses from "./pages/Depenses";
 import Impayes from "./pages/Impayes";
+import MouvementsStock from "./pages/MouvementsStock";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
