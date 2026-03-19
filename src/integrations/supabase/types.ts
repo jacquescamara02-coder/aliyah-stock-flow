@@ -307,6 +307,7 @@ export type Database = {
           created_at: string
           id: string
           marge: number
+          montant_paye: number
           statut_paiement: string
           total: number
         }
@@ -316,6 +317,7 @@ export type Database = {
           created_at?: string
           id?: string
           marge?: number
+          montant_paye?: number
           statut_paiement?: string
           total?: number
         }
@@ -325,6 +327,7 @@ export type Database = {
           created_at?: string
           id?: string
           marge?: number
+          montant_paye?: number
           statut_paiement?: string
           total?: number
         }

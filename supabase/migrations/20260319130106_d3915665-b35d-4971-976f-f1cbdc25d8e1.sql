@@ -1,0 +1,1 @@
+ALTER TABLE public.ventes ADD COLUMN IF NOT EXISTS montant_paye numeric NOT NULL DEFAULT 0;
