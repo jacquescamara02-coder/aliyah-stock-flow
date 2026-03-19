@@ -38,14 +38,14 @@ export function useDeleteVente() {
 export function useConfirmVente() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ cart, client }: { cart: CartItem[]; client: Client }) => {
+    mutationFn: async ({ cart, client, statut_paiement = "payé" }: { cart: CartItem[]; client: Client; statut_paiement?: string }) => {
       const total = cart.reduce((s, i) => s + i.prixUnitaire * i.quantite, 0);
       const marge = cart.reduce((s, i) => s + (i.prixUnitaire - i.prixAchat) * i.quantite, 0);
 
       // Create vente
       const { data: vente, error: venteErr } = await supabase
         .from("ventes")
-        .insert({ client_id: client.id, client_nom: client.nom, total, marge })
+        .insert({ client_id: client.id, client_nom: client.nom, total, marge, statut_paiement } as any)
         .select()
         .single();
       if (venteErr) throw venteErr;
