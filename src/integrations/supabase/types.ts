@@ -252,6 +252,63 @@ export type Database = {
           },
         ]
       }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          motif: string
+          nom: string
+          product_id: string
+          quantite: number
+          reference: string
+          stock_apres: number
+          stock_avant: number
+          type: string
+          vente_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          motif?: string
+          nom: string
+          product_id: string
+          quantite: number
+          reference?: string
+          stock_apres?: number
+          stock_avant?: number
+          type?: string
+          vente_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          motif?: string
+          nom?: string
+          product_id?: string
+          quantite?: number
+          reference?: string
+          stock_apres?: number
+          stock_avant?: number
+          type?: string
+          vente_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_vente_id_fkey"
+            columns: ["vente_id"]
+            isOneToOne: false
+            referencedRelation: "ventes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vente_items: {
         Row: {
           id: string
