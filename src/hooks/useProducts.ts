@@ -54,16 +54,29 @@ export function useUpdateStock() {
         quantite,
         prix_achat: prixAchat,
       });
+      const newStock = product.stock + quantite;
       // Update product stock
       const { error } = await supabase
         .from("products")
-        .update({ stock: product.stock + quantite, prix_achat: prixAchat })
+        .update({ stock: newStock, prix_achat: prixAchat })
         .eq("id", productId);
       if (error) throw error;
+      // Record stock movement
+      await supabase.from("stock_movements").insert({
+        product_id: productId,
+        reference: product.reference,
+        nom: product.name,
+        type: "entree",
+        quantite,
+        stock_avant: product.stock,
+        stock_apres: newStock,
+        motif: `Entrée de stock — Prix d'achat: ${prixAchat} FCFA`,
+      } as any);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["products"] });
       qc.invalidateQueries({ queryKey: ["stock_entries"] });
+      qc.invalidateQueries({ queryKey: ["stock_movements"] });
     },
   });
 }
