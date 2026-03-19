@@ -27,7 +27,8 @@ export default function Ventes() {
   const filtered = products.filter(
     (p) =>
       (p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.reference.toLowerCase().includes(search.toLowerCase())) &&
+        p.reference.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase())) &&
       p.stock > 0
   );
 
@@ -66,6 +67,7 @@ export default function Ventes() {
               <div>
                 <span className="text-xs text-muted-foreground font-mono">{p.reference}</span>
                 <p className="font-medium">{p.name}</p>
+                {p.category && <span className="text-xs text-muted-foreground">{p.category}</span>}
               </div>
               <div className="flex gap-6 items-center">
                 <div className="text-right">
