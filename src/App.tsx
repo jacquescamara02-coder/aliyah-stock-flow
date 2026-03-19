@@ -12,6 +12,7 @@ import Factures from "./pages/Factures";
 import FacturesFournisseurs from "./pages/FacturesFournisseurs";
 import Depenses from "./pages/Depenses";
 import Impayes from "./pages/Impayes";
+import MouvementsStock from "./pages/MouvementsStock";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ function ProtectedRoutes() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/stock" element={<Stock />} />
+        <Route path="/mouvements-stock" element={<MouvementsStock />} />
         <Route path="/ventes" element={<Ventes />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/factures" element={<Factures />} />
