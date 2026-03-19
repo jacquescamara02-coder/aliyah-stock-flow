@@ -3,7 +3,7 @@ import { useVentes } from "@/hooks/useVentes";
 import { useStockEntries } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
 import { KPICard } from "@/components/KPICard";
-import { Package, TrendingUp, AlertTriangle, ShoppingCart } from "lucide-react";
+import { Package, TrendingUp, AlertTriangle, ShoppingCart, DollarSign, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
