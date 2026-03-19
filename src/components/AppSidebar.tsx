@@ -1,7 +1,10 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useVentes } from "@/hooks/useVentes";
+import { useDepenses } from "@/hooks/useDepenses";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { formatCFA } from "@/lib/store";
 import {
   LayoutDashboard,
   Package,
@@ -11,6 +14,8 @@ import {
   Truck,
   TrendingUp,
   LogOut,
+  Wallet,
+  AlertCircle,
 } from "lucide-react";
 
 const navItems = [
@@ -20,11 +25,21 @@ const navItems = [
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Factures Clients", url: "/factures", icon: FileText },
   { title: "Factures Fournisseurs", url: "/fournisseurs", icon: Truck },
+  { title: "Dépenses Diverses", url: "/depenses", icon: Wallet },
+  { title: "Impayés", url: "/impayes", icon: AlertCircle },
 ];
 
 export function AppSidebar() {
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { data: ventes = [] } = useVentes();
+  const { data: depenses = [] } = useDepenses();
+
+  const today = new Date().toISOString().split("T")[0];
+  const ventesJour = ventes.filter((v) => v.created_at.startsWith(today));
+  const caJour = ventesJour.reduce((s, v) => s + v.total, 0);
+  const margeJour = ventesJour.reduce((s, v) => s + v.marge, 0);
+  const depensesJour = depenses.filter((d) => d.date_depense.startsWith(today)).reduce((s, d) => s + d.montant, 0);
 
   return (
     <aside className="w-[240px] min-h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -35,6 +50,29 @@ export function AppSidebar() {
             <h1 className="font-bold text-foreground text-sm tracking-wide">ALIYAH SHOP</h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest leading-tight">Vente de Pièces Détachées de Moto</p>
           </div>
+        </div>
+      </div>
+
+      {/* Daily KPIs */}
+      <div className="px-4 pt-4 pb-2 space-y-1.5 border-b border-sidebar-border">
+        <p className="label-industrial px-1 mb-2">Aujourd'hui</p>
+        <div className="flex items-center justify-between px-2 py-1">
+          <span className="text-[11px] text-muted-foreground">CA Jour</span>
+          <span className="font-mono text-xs font-bold text-primary">{formatCFA(caJour)}</span>
+        </div>
+        <div className="flex items-center justify-between px-2 py-1">
+          <span className="text-[11px] text-muted-foreground">Marge Jour</span>
+          <span className="font-mono text-xs font-bold text-accent-foreground">{formatCFA(margeJour)}</span>
+        </div>
+        <div className="flex items-center justify-between px-2 py-1">
+          <span className="text-[11px] text-muted-foreground">Dépenses</span>
+          <span className="font-mono text-xs font-bold text-destructive">-{formatCFA(depensesJour)}</span>
+        </div>
+        <div className="flex items-center justify-between px-2 py-1 border-t border-sidebar-border pt-1.5">
+          <span className="text-[11px] text-muted-foreground font-medium">Bénéfice Net</span>
+          <span className={`font-mono text-xs font-bold ${margeJour - depensesJour >= 0 ? "text-primary" : "text-destructive"}`}>
+            {formatCFA(margeJour - depensesJour)}
+          </span>
         </div>
       </div>
 
