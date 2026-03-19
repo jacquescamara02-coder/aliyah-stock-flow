@@ -3,7 +3,7 @@ import { useVentes } from "@/hooks/useVentes";
 import { useStockEntries } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
 import { KPICard } from "@/components/KPICard";
-import { Package, TrendingUp, AlertTriangle, ShoppingCart } from "lucide-react";
+import { Package, TrendingUp, AlertTriangle, ShoppingCart, DollarSign, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -13,6 +13,8 @@ export default function Dashboard() {
   const { data: stockEntries = [] } = useStockEntries();
 
   const valeurStock = products.reduce((sum, p) => sum + p.prix_vente * p.stock, 0);
+  const totalAchat = products.reduce((sum, p) => sum + p.prix_achat * p.stock, 0);
+  const totalVente = products.reduce((sum, p) => sum + p.prix_vente * p.stock, 0);
   const margeNette = ventes.reduce((sum, v) => sum + v.marge, 0);
   const alertes = products.filter((p) => p.stock <= p.stock_min).length;
   const ventesTotal = ventes.reduce((sum, v) => sum + v.total, 0);
@@ -39,11 +41,15 @@ export default function Dashboard() {
         <p className="text-muted-foreground text-sm mt-1">Vue d'ensemble de votre activité</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard label="Valeur du Stock" value={formatCFA(valeurStock)} icon={<Package className="w-5 h-5" />} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <KPICard label="Total Achat (Stock)" value={formatCFA(totalAchat)} icon={<DollarSign className="w-5 h-5" />} />
+        <KPICard label="Total Vente (Stock)" value={formatCFA(totalVente)} icon={<Tag className="w-5 h-5" />} accent />
         <KPICard label="Chiffre d'Affaires" value={formatCFA(ventesTotal)} icon={<ShoppingCart className="w-5 h-5" />} accent />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <KPICard label="Marge Nette" value={formatCFA(margeNette)} icon={<TrendingUp className="w-5 h-5" />} accent />
         <KPICard label="Alertes Rupture" value={String(alertes)} icon={<AlertTriangle className="w-5 h-5" />} danger={alertes > 0} />
+        <KPICard label="Valeur du Stock" value={formatCFA(valeurStock)} icon={<Package className="w-5 h-5" />} />
       </div>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded p-6">
