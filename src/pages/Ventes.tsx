@@ -130,6 +130,10 @@ export default function Ventes() {
             <span className="label-industrial">Marge</span>
             <span className="font-mono text-lg text-primary font-bold">{formatCFA(cartMarge)}</span>
           </div>
+          <label className="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" checked={impaye} onChange={(e) => setImpaye(e.target.checked)} className="rounded border-input" />
+            <span className={impaye ? "text-destructive font-medium" : "text-muted-foreground"}>Marchandise non payée (à crédit)</span>
+          </label>
           <Button onClick={handleConfirm} disabled={cart.length === 0 || !selectedClientId || confirmVente.isPending}
             className="w-full bg-primary text-primary-foreground font-bold gap-2">
             <Check className="w-4 h-4" /> {confirmVente.isPending ? "Validation..." : "Valider la Vente"}
