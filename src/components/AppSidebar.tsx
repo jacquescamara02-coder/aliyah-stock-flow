@@ -78,7 +78,7 @@ export function AppSidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto min-h-0">
         <p className="label-industrial mb-3 px-3">Navigation</p>
         {navItems.map((item) => {
           const isActive = location.pathname === item.url;
