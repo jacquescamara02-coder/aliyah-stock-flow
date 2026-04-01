@@ -12,8 +12,9 @@ import { useProducts } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
-import { Plus, Truck, Eye, Printer, FileText, Trash2, Download, Pencil } from "lucide-react";
+import { Plus, Truck, Eye, Printer, FileText, Trash2, Download, Pencil, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -34,18 +35,23 @@ interface NewItem {
 
 const emptyItem: NewItem = { product_id: "", reference: "", nom: "", quantite: "", prix_unitaire: "" };
 
-async function buildFournisseurPDF(facture: any) {
+async function buildFournisseurPDF(facture: any, products: any[]) {
+  const enrichedItems = (facture.items || []).map((i: any) => {
+    const prod = products.find((p: any) => p.id === i.product_id);
+    return {
+      reference: i.reference || prod?.reference || "",
+      nom: i.nom,
+      quantite: i.quantite,
+      prix_unitaire: i.prix_unitaire,
+    };
+  });
+
   return generateInvoicePDF({
     numero: facture.numero_facture || facture.id.slice(0, 8).toUpperCase(),
     date: new Date(facture.date_facture).toLocaleDateString("fr-FR"),
     clientOrFournisseur: facture.fournisseur_nom,
     labelType: "Fournisseur",
-    items: (facture.items || []).map((i: any) => ({
-      reference: i.reference,
-      nom: i.nom,
-      quantite: i.quantite,
-      prix_unitaire: i.prix_unitaire,
-    })),
+    items: enrichedItems,
     total: facture.total,
   });
 }
@@ -69,6 +75,7 @@ export default function FacturesFournisseurs() {
   const [selectedFournisseur, setSelectedFournisseur] = useState<string>("");
   const [numFacture, setNumFacture] = useState("");
   const [items, setItems] = useState<NewItem[]>([{ ...emptyItem }]);
+  const [productSearch, setProductSearch] = useState("");
 
   const [preview, setPreview] = useState<any>(null);
   const [dateFrom, setDateFrom] = useState<Date>();
@@ -106,6 +113,7 @@ export default function FacturesFournisseurs() {
     setSelectedFournisseur("");
     setNumFacture("");
     setItems([{ ...emptyItem }]);
+    setProductSearch("");
   };
 
   const handleSubmitFacture = async () => {
@@ -169,7 +177,7 @@ export default function FacturesFournisseurs() {
 
   const handleDownloadPDF = async (facture: any) => {
     try {
-      const doc = await buildFournisseurPDF(facture);
+      const doc = await buildFournisseurPDF(facture, products);
       downloadPDF(doc, `Facture_Fournisseur_${(facture.numero_facture || facture.id.slice(0, 8)).toUpperCase()}.pdf`);
       toast.success("Facture PDF téléchargée.");
     } catch {
@@ -179,7 +187,7 @@ export default function FacturesFournisseurs() {
 
   const handlePrintPDF = async (facture: any) => {
     try {
-      const doc = await buildFournisseurPDF(facture);
+      const doc = await buildFournisseurPDF(facture, products);
       doc.autoPrint();
       const blob = getPDFBlob(doc);
       const url = URL.createObjectURL(blob);
@@ -190,6 +198,12 @@ export default function FacturesFournisseurs() {
     } catch {
       toast.error("Erreur lors de l'impression.");
     }
+  };
+
+  // Get product info helper
+  const getProductInfo = (productId: string | null) => {
+    if (!productId) return null;
+    return products.find((p) => p.id === productId);
   };
 
   return (
@@ -228,7 +242,7 @@ export default function FacturesFournisseurs() {
                 <Plus className="w-4 h-4" /> Nouvelle Facture
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-card border-border max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogContent className="bg-card border-border max-w-3xl max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{editingFacture ? "Modifier la Facture Fournisseur" : "Enregistrer une Facture Fournisseur"}</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -247,33 +261,56 @@ export default function FacturesFournisseurs() {
 
                 <div>
                   <p className="label-industrial mb-2">Articles</p>
-                  {items.map((item, idx) => (
-                    <div key={idx} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 mb-2 items-end">
-                      <div>
-                        <select className="input-underline w-full bg-transparent text-sm" value={item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
-                          <option value="">Produit (ou saisie libre)</option>
-                          {products.map((p) => <option key={p.id} value={p.id}>{p.reference} — {p.name} ({p.category})</option>)}
-                        </select>
-                        {!item.product_id && (
-                          <input className="input-underline w-full mt-1 text-sm" placeholder="Nom article" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
+                  {items.map((item, idx) => {
+                    const linkedProduct = getProductInfo(item.product_id || null);
+                    return (
+                      <div key={idx} className="border border-border rounded p-3 mb-2">
+                        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-end">
+                          <div>
+                            <select className="input-underline w-full bg-transparent text-sm" value={item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
+                              <option value="">Produit (ou saisie libre)</option>
+                              {products.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.reference} — {p.name} ({p.category}) [Stock: {p.stock}]
+                                </option>
+                              ))}
+                            </select>
+                            {!item.product_id && (
+                              <div className="grid grid-cols-2 gap-2 mt-1">
+                                <input className="input-underline text-sm" placeholder="Référence" value={item.reference} onChange={(e) => { const u = [...items]; u[idx].reference = e.target.value; setItems(u); }} />
+                                <input className="input-underline text-sm" placeholder="Nom article" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
+                              </div>
+                            )}
+                          </div>
+                          <input className="input-underline w-20 font-mono text-sm" type="number" placeholder="Qté" value={item.quantite} onChange={(e) => { const u = [...items]; u[idx].quantite = e.target.value; setItems(u); }} />
+                          <input className="input-underline w-28 font-mono text-sm" type="number" placeholder="Prix unit." value={item.prix_unitaire} onChange={(e) => { const u = [...items]; u[idx].prix_unitaire = e.target.value; setItems(u); }} />
+                          {items.length > 1 && (
+                            <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setItems(items.filter((_, i) => i !== idx))}>
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                        {linkedProduct && (
+                          <div className="flex items-center gap-3 mt-2 pt-2 border-t border-border/50 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Package className="w-3 h-3" /> Stock actuel: <strong className={linkedProduct.stock <= linkedProduct.stock_min ? "text-destructive" : "text-foreground"}>{linkedProduct.stock}</strong></span>
+                            <span>Catégorie: <strong className="text-foreground">{linkedProduct.category || "—"}</strong></span>
+                            <span>Prix vente: <strong className="text-foreground">{formatCFA(linkedProduct.prix_vente)}</strong></span>
+                            <span className="font-mono text-primary font-bold">{Number(item.quantite) > 0 ? `→ Stock après: ${linkedProduct.stock + Number(item.quantite)}` : ""}</span>
+                          </div>
                         )}
                       </div>
-                      <input className="input-underline w-20 font-mono text-sm" type="number" placeholder="Qté" value={item.quantite} onChange={(e) => { const u = [...items]; u[idx].quantite = e.target.value; setItems(u); }} />
-                      <input className="input-underline w-28 font-mono text-sm" type="number" placeholder="Prix unit." value={item.prix_unitaire} onChange={(e) => { const u = [...items]; u[idx].prix_unitaire = e.target.value; setItems(u); }} />
-                      {items.length > 1 && (
-                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setItems(items.filter((_, i) => i !== idx))}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                   <Button size="sm" variant="outline" className="mt-2 gap-1 border-border text-foreground" onClick={() => setItems([...items, { ...emptyItem }])}>
                     <Plus className="w-3 h-3" /> Ajouter un article
                   </Button>
                 </div>
 
                 <div className="flex justify-between items-center border-t border-border pt-4">
-                  <span className="label-industrial">Total</span>
+                  <div>
+                    <span className="label-industrial">Total</span>
+                    <span className="text-xs text-muted-foreground ml-2">({items.filter(i => i.nom && Number(i.quantite) > 0).length} articles)</span>
+                  </div>
                   <span className="font-mono font-bold text-lg text-primary">
                     {formatCFA(items.reduce((s, i) => s + (Number(i.quantite) || 0) * (Number(i.prix_unitaire) || 0), 0))}
                   </span>
@@ -311,7 +348,7 @@ export default function FacturesFournisseurs() {
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => setPreview(f)}>
                 <Eye className="w-3 h-3" />
               </Button>
-              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleEdit(f)}>
+              <Button size="sm" variant="outline" className="gap-1 border-primary/30 text-primary hover:bg-primary/10" onClick={() => handleEdit(f)} title="Modifier">
                 <Pencil className="w-3 h-3" />
               </Button>
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleDownloadPDF(f)}>
@@ -329,14 +366,14 @@ export default function FacturesFournisseurs() {
         {filteredFactures.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune facture fournisseur.</p>}
       </div>
 
-      {/* Preview dialog */}
+      {/* Preview dialog — enriched with stock data */}
       <Dialog open={!!preview} onOpenChange={() => setPreview(null)}>
-        <DialogContent className="bg-card border-border max-w-2xl">
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Facture Fournisseur</DialogTitle>
           </DialogHeader>
           {preview && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-4">
               <div className="bg-foreground text-background p-8 rounded font-sans text-sm">
                 <div className="flex justify-between items-start mb-8">
                   <div className="flex items-center gap-3"><img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-12 h-12 rounded-full object-cover" /><div><h2 className="text-xl font-bold">ALIYAH SHOP</h2><p className="text-xs opacity-60">Vente de Pièces Détachées de Moto</p></div></div>
@@ -372,9 +409,48 @@ export default function FacturesFournisseurs() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Vente de Pièces Détachées de Moto</div>
+                <div className="mt-8 pt-4 border-t border-background/10 text-center text-xs opacity-40">ALIYAH SHOP — Hire Ouatta — Tél : 07 59 09 59 59 / 05 74 98 02 68</div>
               </div>
-              <div className="flex gap-2 mt-4">
+
+              {/* Stock impact section */}
+              <div className="border border-border rounded p-4">
+                <p className="label-industrial mb-3 flex items-center gap-2"><Package className="w-4 h-4 text-primary" /> Impact sur le stock</p>
+                <div className="space-y-2">
+                  {(preview.items || []).map((item: any, idx: number) => {
+                    const prod = getProductInfo(item.product_id);
+                    return (
+                      <div key={idx} className="flex items-center justify-between text-sm py-1.5 border-b border-border/50 last:border-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.nom}</span>
+                          {prod ? (
+                            <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                              Lié au stock
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] border-muted-foreground/30 text-muted-foreground">
+                              Non lié
+                            </Badge>
+                          )}
+                        </div>
+                        {prod ? (
+                          <div className="flex items-center gap-3 font-mono text-xs">
+                            <span className="text-muted-foreground">Stock: <strong className={prod.stock <= prod.stock_min ? "text-destructive" : "text-foreground"}>{prod.stock}</strong></span>
+                            <span className="text-muted-foreground">Cat: <strong className="text-foreground">{prod.category || "—"}</strong></span>
+                            <span className="text-muted-foreground">Vente: <strong className="text-foreground">{formatCFA(prod.prix_vente)}</strong></span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">+{item.quantite} unités (article libre)</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={() => handleEdit(preview)} variant="outline" className="flex-1 gap-2 border-primary/30 text-primary">
+                  <Pencil className="w-4 h-4" /> Modifier
+                </Button>
                 <Button onClick={() => handleDownloadPDF(preview)} className="flex-1 bg-primary text-primary-foreground font-bold gap-2">
                   <Download className="w-4 h-4" /> PDF
                 </Button>
