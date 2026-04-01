@@ -73,6 +73,61 @@ export function useFacturesFournisseurs() {
   });
 }
 
+async function reverseSupplierStock(items: FactureFournisseurItem[]) {
+  for (const item of items) {
+    if (item.product_id) {
+      const { data: prod } = await supabase
+        .from("products")
+        .select("stock, reference, name")
+        .eq("id", item.product_id)
+        .single();
+      if (prod) {
+        const newStock = prod.stock - item.quantite;
+        await supabase.from("products").update({ stock: newStock }).eq("id", item.product_id);
+        await supabase.from("stock_movements").insert({
+          product_id: item.product_id,
+          reference: prod.reference,
+          nom: prod.name,
+          type: "annulation",
+          quantite: item.quantite,
+          stock_avant: prod.stock,
+          stock_apres: newStock,
+          motif: `Annulation facture fournisseur`,
+        } as any);
+      }
+    }
+  }
+}
+
+async function applySupplierStock(items: { product_id?: string; reference: string; nom: string; quantite: number; prix_unitaire: number }[]) {
+  for (const item of items) {
+    if (item.product_id) {
+      const { data: prod } = await supabase
+        .from("products")
+        .select("stock")
+        .eq("id", item.product_id)
+        .single();
+      if (prod) {
+        const newStock = prod.stock + item.quantite;
+        await supabase
+          .from("products")
+          .update({ stock: newStock, prix_achat: item.prix_unitaire })
+          .eq("id", item.product_id);
+        await supabase.from("stock_movements").insert({
+          product_id: item.product_id,
+          reference: item.reference,
+          nom: item.nom,
+          type: "entree",
+          quantite: item.quantite,
+          stock_avant: prod.stock,
+          stock_apres: newStock,
+          motif: `Facture fournisseur — entrée stock`,
+        } as any);
+      }
+    }
+  }
+}
+
 export function useAddFactureFournisseur() {
   const qc = useQueryClient();
   return useMutation({
@@ -109,28 +164,89 @@ export function useAddFactureFournisseur() {
       }));
       await supabase.from("facture_fournisseur_items").insert(rows);
 
-      // Update product stock for linked products
-      for (const item of items) {
-        if (item.product_id) {
-          const { data: prod } = await supabase
-            .from("products")
-            .select("stock")
-            .eq("id", item.product_id)
-            .single();
-          if (prod) {
-            await supabase
-              .from("products")
-              .update({ stock: prod.stock + item.quantite, prix_achat: item.prix_unitaire })
-              .eq("id", item.product_id);
-          }
-        }
-      }
+      await applySupplierStock(items);
 
       return facture;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["factures_fournisseurs"] });
       qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["stock_movements"] });
+    },
+  });
+}
+
+export function useDeleteFactureFournisseur() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (facture: FactureFournisseur) => {
+      // Reverse stock for linked products
+      if (facture.items) {
+        await reverseSupplierStock(facture.items);
+      }
+      // Delete items then facture
+      await supabase.from("facture_fournisseur_items").delete().eq("facture_id", facture.id);
+      const { error } = await supabase.from("factures_fournisseurs").delete().eq("id", facture.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["factures_fournisseurs"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["stock_movements"] });
+    },
+  });
+}
+
+export function useUpdateFactureFournisseur() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      facture,
+      fournisseur,
+      numero_facture,
+      items,
+    }: {
+      facture: FactureFournisseur;
+      fournisseur: Fournisseur;
+      numero_facture: string;
+      items: { product_id?: string; reference: string; nom: string; quantite: number; prix_unitaire: number }[];
+    }) => {
+      // Reverse old stock
+      if (facture.items) {
+        await reverseSupplierStock(facture.items);
+      }
+
+      const total = items.reduce((s, i) => s + i.quantite * i.prix_unitaire, 0);
+
+      // Update facture header
+      await supabase.from("factures_fournisseurs").update({
+        fournisseur_id: fournisseur.id,
+        fournisseur_nom: fournisseur.nom,
+        numero_facture,
+        total,
+      }).eq("id", facture.id);
+
+      // Replace items
+      await supabase.from("facture_fournisseur_items").delete().eq("facture_id", facture.id);
+      const rows = items.map((i) => ({
+        facture_id: facture.id,
+        product_id: i.product_id || null,
+        reference: i.reference,
+        nom: i.nom,
+        quantite: i.quantite,
+        prix_unitaire: i.prix_unitaire,
+      }));
+      await supabase.from("facture_fournisseur_items").insert(rows);
+
+      // Apply new stock
+      await applySupplierStock(items);
+
+      return facture;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["factures_fournisseurs"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["stock_movements"] });
     },
   });
 }

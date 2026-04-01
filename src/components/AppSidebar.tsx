@@ -44,7 +44,7 @@ export function AppSidebar() {
   const depensesJour = depenses.filter((d) => d.date_depense.startsWith(today)).reduce((s, d) => s + d.montant, 0);
 
   return (
-    <aside className="w-[240px] min-h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
+    <aside className="w-[240px] h-screen bg-sidebar border-r border-sidebar-border flex flex-col overflow-hidden">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <img src="/images/logo-aliyah.jpeg" alt="Aliyah Shop" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/30" />
@@ -78,7 +78,7 @@ export function AppSidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto min-h-0">
         <p className="label-industrial mb-3 px-3">Navigation</p>
         {navItems.map((item) => {
           const isActive = location.pathname === item.url;
