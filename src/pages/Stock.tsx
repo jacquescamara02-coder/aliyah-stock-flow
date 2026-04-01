@@ -1,16 +1,19 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useProducts, useAddProduct, useUpdateStock, useDeleteProduct, useBulkAddProducts } from "@/hooks/useProducts";
+import { useStockMovements } from "@/hooks/useStockMovements";
 import { formatCFA, getMarginPercent } from "@/lib/store";
 import { motion } from "framer-motion";
-import { Plus, Search, Package, Trash2, FileSpreadsheet } from "lucide-react";
+import { Plus, Search, Package, Trash2, FileSpreadsheet, Truck, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import ExcelImport from "@/components/ExcelImport";
+import { Badge } from "@/components/ui/badge";
 
 export default function Stock() {
   const { data: products = [] } = useProducts();
+  const { data: movements = [] } = useStockMovements();
   const addProduct = useAddProduct();
   const updateStock = useUpdateStock();
   const deleteProduct = useDeleteProduct();
@@ -30,6 +33,18 @@ export default function Stock() {
 
   const [entryQty, setEntryQty] = useState("");
   const [entryPrix, setEntryPrix] = useState("");
+
+  // Products recently stocked via supplier invoice (last 48h)
+  const recentSupplierProductIds = useMemo(() => {
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const ids = new Set<string>();
+    for (const m of movements) {
+      if (m.type === "entree" && m.motif.includes("Facture fournisseur") && m.created_at >= cutoff) {
+        ids.add(m.product_id);
+      }
+    }
+    return ids;
+  }, [movements]);
 
   const filtered = products.filter(
     (p) =>
@@ -156,57 +171,67 @@ export default function Stock() {
           <span className="label-industrial text-right">Marge</span>
           <span className="label-industrial text-right">Action</span>
         </div>
-        {filtered.map((p) => (
-          <motion.div key={p.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-            className="grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
-            <div>
-              <span className="text-xs text-muted-foreground font-mono">{p.reference}</span>
-              <p className="font-medium">{p.name}</p>
-            </div>
-            <span className="text-xs text-muted-foreground">{p.category || "—"}</span>
-            <p className="font-mono text-sm text-right">{formatCFA(p.prix_achat)}</p>
-            <p className="font-mono text-sm text-right">{formatCFA(p.prix_vente)}</p>
-            <p className={`font-mono text-lg text-right font-bold ${p.stock <= p.stock_min ? "text-destructive" : ""}`}>{p.stock}</p>
-            <p className="font-mono text-lg text-right text-primary font-bold">{getMarginPercent(p.prix_achat, p.prix_vente)}%</p>
-            <div className="flex gap-1 justify-end">
-              <Dialog open={showEntry === p.id} onOpenChange={(open) => { setShowEntry(open ? p.id : null); if (open) setEntryPrix(String(p.prix_achat)); }}>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="gap-1 border-border text-foreground"><Package className="w-3 h-3" /> Entrée</Button>
-                </DialogTrigger>
-                <DialogContent className="bg-card border-border">
-                  <DialogHeader><DialogTitle>Entrée de Stock — {p.name}</DialogTitle></DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <div><label className="label-industrial">Quantité</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryQty} onChange={(e) => setEntryQty(e.target.value)} /></div>
-                    <div><label className="label-industrial">Prix d'achat unitaire (FCFA)</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryPrix} onChange={(e) => setEntryPrix(e.target.value)} /></div>
-                    <Button onClick={handleEntry} disabled={updateStock.isPending} className="w-full bg-primary text-primary-foreground font-bold">
-                      {updateStock.isPending ? "Mise à jour..." : "Confirmer l'entrée"}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="outline" className="gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="w-3 h-3" /></Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-card border-border">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer {p.name} ?</AlertDialogTitle>
-                    <AlertDialogDescription>Cette action est irréversible. Le produit sera définitivement supprimé.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
-                    <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
-                      try {
-                        await deleteProduct.mutateAsync(p.id);
-                        toast.success(`"${p.name}" supprimé.`);
-                      } catch (e: any) { toast.error(e.message); }
-                    }}>Supprimer</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </motion.div>
-        ))}
+        {filtered.map((p) => {
+          const isRecent = recentSupplierProductIds.has(p.id);
+          return (
+            <motion.div key={p.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+              className={`grid grid-cols-[1fr_auto_auto_auto_auto_auto_auto] gap-4 p-4 border-b border-border items-center ${isRecent ? "bg-primary/5" : ""}`}>
+              <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <span className="text-xs text-muted-foreground font-mono">{p.reference}</span>
+                  <p className="font-medium truncate">{p.name}</p>
+                </div>
+                {isRecent && (
+                  <Badge variant="outline" className="border-primary/50 text-primary text-[10px] gap-1 shrink-0 animate-pulse">
+                    <Truck className="w-3 h-3" /> Nouveau
+                  </Badge>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground">{p.category || "—"}</span>
+              <p className="font-mono text-sm text-right">{formatCFA(p.prix_achat)}</p>
+              <p className="font-mono text-sm text-right">{formatCFA(p.prix_vente)}</p>
+              <p className={`font-mono text-lg text-right font-bold ${p.stock <= p.stock_min ? "text-destructive" : ""}`}>{p.stock}</p>
+              <p className="font-mono text-lg text-right text-primary font-bold">{getMarginPercent(p.prix_achat, p.prix_vente)}%</p>
+              <div className="flex gap-1 justify-end">
+                <Dialog open={showEntry === p.id} onOpenChange={(open) => { setShowEntry(open ? p.id : null); if (open) setEntryPrix(String(p.prix_achat)); }}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="outline" className="gap-1 border-border text-foreground"><Package className="w-3 h-3" /> Entrée</Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-card border-border">
+                    <DialogHeader><DialogTitle>Entrée de Stock — {p.name}</DialogTitle></DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div><label className="label-industrial">Quantité</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryQty} onChange={(e) => setEntryQty(e.target.value)} /></div>
+                      <div><label className="label-industrial">Prix d'achat unitaire (FCFA)</label><input className="input-underline w-full mt-1 font-mono" type="number" value={entryPrix} onChange={(e) => setEntryPrix(e.target.value)} /></div>
+                      <Button onClick={handleEntry} disabled={updateStock.isPending} className="w-full bg-primary text-primary-foreground font-bold">
+                        {updateStock.isPending ? "Mise à jour..." : "Confirmer l'entrée"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="outline" className="gap-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="w-3 h-3" /></Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-card border-border">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer {p.name} ?</AlertDialogTitle>
+                      <AlertDialogDescription>Cette action est irréversible. Le produit sera définitivement supprimé.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
+                      <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
+                        try {
+                          await deleteProduct.mutateAsync(p.id);
+                          toast.success(`"${p.name}" supprimé.`);
+                        } catch (e: any) { toast.error(e.message); }
+                      }}>Supprimer</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </motion.div>
+          );
+        })}
         {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Aucun produit trouvé.</p>}
       </div>
 
