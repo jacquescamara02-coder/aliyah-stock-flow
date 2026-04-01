@@ -4,12 +4,15 @@ import {
   useAddFournisseur,
   useFacturesFournisseurs,
   useAddFactureFournisseur,
+  useDeleteFactureFournisseur,
+  useUpdateFactureFournisseur,
+  type FactureFournisseur,
 } from "@/hooks/useFournisseurs";
 import { useProducts } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
-import { Plus, Truck, Eye, Printer, FileText, Trash2, Download } from "lucide-react";
+import { Plus, Truck, Eye, Printer, FileText, Trash2, Download, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,6 +56,8 @@ export default function FacturesFournisseurs() {
   const { data: products = [] } = useProducts();
   const addFournisseur = useAddFournisseur();
   const addFacture = useAddFactureFournisseur();
+  const deleteFacture = useDeleteFactureFournisseur();
+  const updateFacture = useUpdateFactureFournisseur();
 
   const [showNewFournisseur, setShowNewFournisseur] = useState(false);
   const [fNom, setFNom] = useState("");
@@ -60,6 +65,7 @@ export default function FacturesFournisseurs() {
   const [fAdresse, setFAdresse] = useState("");
 
   const [showNewFacture, setShowNewFacture] = useState(false);
+  const [editingFacture, setEditingFacture] = useState<FactureFournisseur | null>(null);
   const [selectedFournisseur, setSelectedFournisseur] = useState<string>("");
   const [numFacture, setNumFacture] = useState("");
   const [items, setItems] = useState<NewItem[]>([{ ...emptyItem }]);
@@ -94,28 +100,70 @@ export default function FacturesFournisseurs() {
     setItems(updated);
   };
 
+  const resetForm = () => {
+    setShowNewFacture(false);
+    setEditingFacture(null);
+    setSelectedFournisseur("");
+    setNumFacture("");
+    setItems([{ ...emptyItem }]);
+  };
+
   const handleSubmitFacture = async () => {
     const fournisseur = fournisseurs.find((f) => f.id === selectedFournisseur);
     if (!fournisseur) { toast.error("Sélectionnez un fournisseur."); return; }
     const validItems = items.filter((i) => i.nom && Number(i.quantite) > 0 && Number(i.prix_unitaire) > 0);
     if (validItems.length === 0) { toast.error("Ajoutez au moins un article."); return; }
+
+    const mappedItems = validItems.map((i) => ({
+      product_id: i.product_id || undefined,
+      reference: i.reference,
+      nom: i.nom,
+      quantite: Number(i.quantite),
+      prix_unitaire: Number(i.prix_unitaire),
+    }));
+
     try {
-      await addFacture.mutateAsync({
-        fournisseur,
-        numero_facture: numFacture,
-        items: validItems.map((i) => ({
-          product_id: i.product_id || undefined,
-          reference: i.reference,
-          nom: i.nom,
-          quantite: Number(i.quantite),
-          prix_unitaire: Number(i.prix_unitaire),
-        })),
-      });
-      toast.success("Facture fournisseur enregistrée. Stock mis à jour.");
-      setShowNewFacture(false);
-      setSelectedFournisseur("");
-      setNumFacture("");
-      setItems([{ ...emptyItem }]);
+      if (editingFacture) {
+        await updateFacture.mutateAsync({
+          facture: editingFacture,
+          fournisseur,
+          numero_facture: numFacture,
+          items: mappedItems,
+        });
+        toast.success("Facture modifiée. Stock mis à jour.");
+      } else {
+        await addFacture.mutateAsync({
+          fournisseur,
+          numero_facture: numFacture,
+          items: mappedItems,
+        });
+        toast.success("Facture fournisseur enregistrée. Stock mis à jour.");
+      }
+      resetForm();
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleEdit = (f: FactureFournisseur) => {
+    setEditingFacture(f);
+    setSelectedFournisseur(f.fournisseur_id || "");
+    setNumFacture(f.numero_facture);
+    setItems(
+      (f.items || []).map((i) => ({
+        product_id: i.product_id || "",
+        reference: i.reference,
+        nom: i.nom,
+        quantite: String(i.quantite),
+        prix_unitaire: String(i.prix_unitaire),
+      }))
+    );
+    setShowNewFacture(true);
+  };
+
+  const handleDelete = async (f: FactureFournisseur) => {
+    if (!confirm(`Supprimer la facture ${f.numero_facture || f.id.slice(0, 8).toUpperCase()} ? Le stock sera restauré.`)) return;
+    try {
+      await deleteFacture.mutateAsync(f);
+      toast.success("Facture supprimée. Stock restauré.");
     } catch (e: any) { toast.error(e.message); }
   };
 
@@ -174,14 +222,14 @@ export default function FacturesFournisseurs() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={showNewFacture} onOpenChange={setShowNewFacture}>
+          <Dialog open={showNewFacture} onOpenChange={(open) => { if (!open) resetForm(); else setShowNewFacture(true); }}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground font-bold gap-2">
                 <Plus className="w-4 h-4" /> Nouvelle Facture
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border max-w-2xl max-h-[85vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Enregistrer une Facture Fournisseur</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{editingFacture ? "Modifier la Facture Fournisseur" : "Enregistrer une Facture Fournisseur"}</DialogTitle></DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -204,7 +252,7 @@ export default function FacturesFournisseurs() {
                       <div>
                         <select className="input-underline w-full bg-transparent text-sm" value={item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
                           <option value="">Produit (ou saisie libre)</option>
-                          {products.map((p) => <option key={p.id} value={p.id}>{p.reference} — {p.name}</option>)}
+                          {products.map((p) => <option key={p.id} value={p.id}>{p.reference} — {p.name} ({p.category})</option>)}
                         </select>
                         {!item.product_id && (
                           <input className="input-underline w-full mt-1 text-sm" placeholder="Nom article" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
@@ -231,8 +279,8 @@ export default function FacturesFournisseurs() {
                   </span>
                 </div>
 
-                <Button onClick={handleSubmitFacture} disabled={addFacture.isPending} className="w-full bg-primary text-primary-foreground font-bold">
-                  {addFacture.isPending ? "Enregistrement..." : "Enregistrer la Facture"}
+                <Button onClick={handleSubmitFacture} disabled={addFacture.isPending || updateFacture.isPending} className="w-full bg-primary text-primary-foreground font-bold">
+                  {addFacture.isPending || updateFacture.isPending ? "Enregistrement..." : editingFacture ? "Modifier la Facture" : "Enregistrer la Facture"}
                 </Button>
               </div>
             </DialogContent>
@@ -253,18 +301,27 @@ export default function FacturesFournisseurs() {
           <motion.div key={f.id} whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
             className="grid grid-cols-[auto_1fr_auto_auto_auto] gap-4 p-4 border-b border-border items-center">
             <p className="font-mono text-sm font-bold text-primary">{f.numero_facture || f.id.slice(0, 8).toUpperCase()}</p>
-            <p className="font-medium">{f.fournisseur_nom}</p>
+            <div>
+              <p className="font-medium">{f.fournisseur_nom}</p>
+              <p className="text-xs text-muted-foreground">{(f.items || []).length} article(s)</p>
+            </div>
             <p className="font-mono text-sm text-right font-bold">{formatCFA(f.total)}</p>
             <p className="font-mono text-xs text-muted-foreground text-right">{new Date(f.date_facture).toLocaleDateString("fr-FR")}</p>
             <div className="flex gap-1 justify-end">
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => setPreview(f)}>
                 <Eye className="w-3 h-3" />
               </Button>
+              <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleEdit(f)}>
+                <Pencil className="w-3 h-3" />
+              </Button>
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handleDownloadPDF(f)}>
                 <Download className="w-3 h-3" />
               </Button>
               <Button size="sm" variant="outline" className="gap-1 border-border text-foreground" onClick={() => handlePrintPDF(f)}>
                 <Printer className="w-3 h-3" />
+              </Button>
+              <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(f)}>
+                <Trash2 className="w-3 h-3" />
               </Button>
             </div>
           </motion.div>
