@@ -50,7 +50,7 @@ function InvoicePreview({ vente, products = [] }: { vente: Vente & { items?: Ven
             <tr key={idx} className="border-b border-background/10">
               <td className="py-2">
                 <span className="font-mono text-xs opacity-50">{item.reference}</span><br />
-                {item.nom}
+                {item.nom}{getCategory(item.product_id) ? ` — ${getCategory(item.product_id)}` : ""}
               </td>
               <td className="text-right py-2 font-mono">{item.quantite}</td>
               <td className="text-right py-2 font-mono">{formatCFA(item.prix_unitaire)}</td>
