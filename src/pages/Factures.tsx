@@ -393,7 +393,7 @@ export default function Factures() {
           </DialogHeader>
           {preview && (
             <div className="mt-4">
-              <InvoicePreview vente={preview} />
+              <InvoicePreview vente={preview} products={products} />
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
                 <Button onClick={() => handleDownloadPDF(preview)} className="bg-primary text-primary-foreground font-bold gap-2">
                   <Download className="w-4 h-4" /> PDF
