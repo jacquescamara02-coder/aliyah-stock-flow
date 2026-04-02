@@ -83,10 +83,18 @@ export default function Depenses() {
       </motion.div>
 
       {/* Filter & Total */}
-      <div className="flex items-center justify-between">
-        <Input type="month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="w-48" />
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Input type="month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className="w-48" />
+          <Button variant={filterMonth === "" ? "default" : "outline"} size="sm" onClick={() => setFilterMonth("")}>
+            Tout
+          </Button>
+          <Button variant={filterMonth === new Date().toISOString().slice(0, 7) ? "default" : "outline"} size="sm" onClick={() => setFilterMonth(new Date().toISOString().slice(0, 7))}>
+            Ce mois
+          </Button>
+        </div>
         <div className="bg-card border border-border rounded px-4 py-2">
-          <span className="text-sm text-muted-foreground mr-2">Total du mois:</span>
+          <span className="text-sm text-muted-foreground mr-2">{filterMonth ? "Total du mois:" : "Total général:"}</span>
           <span className="font-mono font-bold text-primary">{formatCFA(totalMois)}</span>
         </div>
       </div>
