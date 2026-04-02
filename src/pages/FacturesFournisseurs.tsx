@@ -99,15 +99,21 @@ export default function FacturesFournisseurs() {
   };
 
   const handleProductSelect = (idx: number, productId: string) => {
+    const updated = [...items];
+    if (productId === "__NEW__") {
+      updated[idx] = { ...updated[idx], product_id: "", __newProduct: true, reference: "", nom: "", prix_unitaire: "", __category: "", __prix_vente: "", __stock_min: "0" };
+      setItems(updated);
+      return;
+    }
     const product = products.find((p) => p.id === productId);
     if (!product) return;
-    const updated = [...items];
     updated[idx] = {
       ...updated[idx],
       product_id: productId,
       reference: product.reference,
       nom: product.name,
       prix_unitaire: String(product.prix_achat),
+      __newProduct: false,
     };
     setItems(updated);
   };
