@@ -74,7 +74,8 @@ function InvoicePreview({ vente, products = [] }: { vente: Vente & { items?: Ven
   );
 }
 
-async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
+async function buildPDF(vente: Vente & { items?: VenteItem[] }, products: { id: string; category: string }[] = []) {
+  const getCategory = (productId: string) => products.find(p => p.id === productId)?.category || "";
   return generateInvoicePDF({
     numero: vente.id.slice(0, 8).toUpperCase(),
     date: new Date(vente.created_at).toLocaleDateString('fr-FR'),
@@ -82,7 +83,7 @@ async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
     labelType: "Client",
     items: (vente.items || []).map(i => ({
       reference: i.reference,
-      nom: i.nom,
+      nom: getCategory(i.product_id) ? `${i.nom} — ${getCategory(i.product_id)}` : i.nom,
       quantite: i.quantite,
       prix_unitaire: i.prix_unitaire,
     })),
