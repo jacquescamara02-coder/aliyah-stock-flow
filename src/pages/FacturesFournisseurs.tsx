@@ -8,7 +8,7 @@ import {
   useUpdateFactureFournisseur,
   type FactureFournisseur,
 } from "@/hooks/useFournisseurs";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, useAddProduct } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
@@ -31,6 +31,10 @@ interface NewItem {
   nom: string;
   quantite: string;
   prix_unitaire: string;
+  __newProduct?: boolean;
+  __category?: string;
+  __prix_vente?: string;
+  __stock_min?: string;
 }
 
 const emptyItem: NewItem = { product_id: "", reference: "", nom: "", quantite: "", prix_unitaire: "" };
@@ -61,6 +65,7 @@ export default function FacturesFournisseurs() {
   const { data: factures = [] } = useFacturesFournisseurs();
   const { data: products = [] } = useProducts();
   const addFournisseur = useAddFournisseur();
+  const addProduct = useAddProduct();
   const addFacture = useAddFactureFournisseur();
   const deleteFacture = useDeleteFactureFournisseur();
   const updateFacture = useUpdateFactureFournisseur();
@@ -94,15 +99,21 @@ export default function FacturesFournisseurs() {
   };
 
   const handleProductSelect = (idx: number, productId: string) => {
+    const updated = [...items];
+    if (productId === "__NEW__") {
+      updated[idx] = { ...updated[idx], product_id: "", __newProduct: true, reference: "", nom: "", prix_unitaire: "", __category: "", __prix_vente: "", __stock_min: "0" };
+      setItems(updated);
+      return;
+    }
     const product = products.find((p) => p.id === productId);
     if (!product) return;
-    const updated = [...items];
     updated[idx] = {
       ...updated[idx],
       product_id: productId,
       reference: product.reference,
       nom: product.name,
       prix_unitaire: String(product.prix_achat),
+      __newProduct: false,
     };
     setItems(updated);
   };
@@ -122,7 +133,30 @@ export default function FacturesFournisseurs() {
     const validItems = items.filter((i) => i.nom && Number(i.quantite) > 0 && Number(i.prix_unitaire) > 0);
     if (validItems.length === 0) { toast.error("Ajoutez au moins un article."); return; }
 
-    const mappedItems = validItems.map((i) => ({
+    // Create new products first
+    const resolvedItems: typeof validItems = [];
+    for (const item of validItems) {
+      if (item.__newProduct && !item.product_id) {
+        if (!item.reference || !item.nom) { toast.error(`Référence et nom requis pour le nouveau produit "${item.nom || item.reference}".`); return; }
+        try {
+          const newProduct = await addProduct.mutateAsync({
+            reference: item.reference,
+            name: item.nom,
+            category: item.__category || "",
+            prix_achat: Number(item.prix_unitaire),
+            prix_vente: Number(item.__prix_vente) || 0,
+            stock: 0,
+            stock_min: Number(item.__stock_min) || 0,
+          });
+          resolvedItems.push({ ...item, product_id: newProduct.id });
+          toast.success(`Produit "${item.nom}" créé dans le stock.`);
+        } catch (e: any) { toast.error(`Erreur création produit: ${e.message}`); return; }
+      } else {
+        resolvedItems.push(item);
+      }
+    }
+
+    const mappedItems = resolvedItems.map((i) => ({
       product_id: i.product_id || undefined,
       reference: i.reference,
       nom: i.nom,
@@ -267,15 +301,28 @@ export default function FacturesFournisseurs() {
                       <div key={idx} className="border border-border rounded p-3 mb-2">
                         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-end">
                           <div>
-                            <select className="input-underline w-full bg-transparent text-sm" value={item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
+                            <select className="input-underline w-full bg-transparent text-sm" value={item.__newProduct ? "__NEW__" : item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
                               <option value="">Produit (ou saisie libre)</option>
+                              <option value="__NEW__" className="font-bold text-primary">➕ Créer un nouveau produit</option>
                               {products.map((p) => (
                                 <option key={p.id} value={p.id}>
                                   {p.reference} — {p.name} ({p.category}) [Stock: {p.stock}]
                                 </option>
                               ))}
                             </select>
-                            {!item.product_id && (
+                            {item.__newProduct && (
+                              <div className="mt-2 p-2 bg-primary/5 border border-primary/20 rounded space-y-2">
+                                <p className="text-xs font-bold text-primary flex items-center gap-1"><Plus className="w-3 h-3" /> Nouveau produit — sera créé automatiquement</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <input className="input-underline text-sm" placeholder="Référence *" value={item.reference} onChange={(e) => { const u = [...items]; u[idx].reference = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" placeholder="Nom produit *" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" placeholder="Catégorie / Modèle" value={item.__category || ""} onChange={(e) => { const u = [...items]; u[idx].__category = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" type="number" placeholder="Prix de vente" value={item.__prix_vente || ""} onChange={(e) => { const u = [...items]; u[idx].__prix_vente = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" type="number" placeholder="Stock minimum" value={item.__stock_min || ""} onChange={(e) => { const u = [...items]; u[idx].__stock_min = e.target.value; setItems(u); }} />
+                                </div>
+                              </div>
+                            )}
+                            {!item.product_id && !item.__newProduct && (
                               <div className="grid grid-cols-2 gap-2 mt-1">
                                 <input className="input-underline text-sm" placeholder="Référence" value={item.reference} onChange={(e) => { const u = [...items]; u[idx].reference = e.target.value; setItems(u); }} />
                                 <input className="input-underline text-sm" placeholder="Nom article" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
