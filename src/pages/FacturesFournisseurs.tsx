@@ -8,7 +8,7 @@ import {
   useUpdateFactureFournisseur,
   type FactureFournisseur,
 } from "@/hooks/useFournisseurs";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, useAddProduct } from "@/hooks/useProducts";
 import { formatCFA } from "@/lib/store";
 import { generateInvoicePDF, downloadPDF, getPDFBlob } from "@/lib/generateInvoicePDF";
 import { motion } from "framer-motion";
