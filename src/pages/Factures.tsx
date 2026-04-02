@@ -14,8 +14,9 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
-function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
+function InvoicePreview({ vente, products = [] }: { vente: Vente & { items?: VenteItem[] }; products?: { id: string; category: string }[] }) {
   const date = new Date(vente.created_at).toLocaleDateString('fr-FR');
+  const getCategory = (productId: string) => products.find(p => p.id === productId)?.category || "";
   return (
     <div className="bg-foreground text-background p-8 rounded font-sans text-sm">
       <div className="flex justify-between items-start mb-8">
@@ -49,7 +50,7 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
             <tr key={idx} className="border-b border-background/10">
               <td className="py-2">
                 <span className="font-mono text-xs opacity-50">{item.reference}</span><br />
-                {item.nom}
+                {item.nom}{getCategory(item.product_id) ? ` — ${getCategory(item.product_id)}` : ""}
               </td>
               <td className="text-right py-2 font-mono">{item.quantite}</td>
               <td className="text-right py-2 font-mono">{formatCFA(item.prix_unitaire)}</td>
@@ -73,7 +74,8 @@ function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
   );
 }
 
-async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
+async function buildPDF(vente: Vente & { items?: VenteItem[] }, products: { id: string; category: string }[] = []) {
+  const getCategory = (productId: string) => products.find(p => p.id === productId)?.category || "";
   return generateInvoicePDF({
     numero: vente.id.slice(0, 8).toUpperCase(),
     date: new Date(vente.created_at).toLocaleDateString('fr-FR'),
@@ -81,7 +83,7 @@ async function buildPDF(vente: Vente & { items?: VenteItem[] }) {
     labelType: "Client",
     items: (vente.items || []).map(i => ({
       reference: i.reference,
-      nom: i.nom,
+      nom: getCategory(i.product_id) ? `${i.nom} — ${getCategory(i.product_id)}` : i.nom,
       quantite: i.quantite,
       prix_unitaire: i.prix_unitaire,
     })),
@@ -233,6 +235,7 @@ function EditInvoiceDialog({ vente, open, onClose }: { vente: Vente & { items?: 
 export default function Factures() {
   const navigate = useNavigate();
   const { data: ventes = [] } = useVentes();
+  const { data: products = [] } = useProducts();
   const { data: clients = [] } = useClients();
   const deleteVente = useDeleteVente();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
@@ -244,7 +247,7 @@ export default function Factures() {
 
   const handleDownloadPDF = async (vente: Vente & { items?: VenteItem[] }) => {
     try {
-      const doc = await buildPDF(vente);
+      const doc = await buildPDF(vente, products);
       downloadPDF(doc, `Facture_${vente.id.slice(0, 8).toUpperCase()}.pdf`);
       toast.success("Facture PDF téléchargée.");
     } catch {
@@ -254,7 +257,7 @@ export default function Factures() {
 
   const handlePrintPDF = async (vente: Vente & { items?: VenteItem[] }) => {
     try {
-      const doc = await buildPDF(vente);
+      const doc = await buildPDF(vente, products);
       doc.autoPrint();
       const blob = getPDFBlob(doc);
       const url = URL.createObjectURL(blob);
@@ -271,14 +274,16 @@ export default function Factures() {
     const client = clients.find(c => c.id === vente.client_id);
     const rawPhone = client?.telephone?.replace(/\s/g, "");
     const phone = rawPhone ? rawPhone.replace(/^0/, "225") : "2250759095959";
+    const getCategory = (pid: string) => products.find(p => p.id === pid)?.category || "";
     
     const text = `📄 *FACTURE ALIYAH SHOP*\n\n` +
       `N°: ${vente.id.slice(0, 8).toUpperCase()}\n` +
       `Client: ${vente.client_nom}\n` +
       `Date: ${new Date(vente.created_at).toLocaleDateString('fr-FR')}\n\n` +
-      (vente.items || []).map(i =>
-        `▸ ${i.nom} x${i.quantite} — ${formatCFA(i.prix_unitaire * i.quantite)}`
-      ).join('\n') +
+      (vente.items || []).map(i => {
+        const cat = getCategory(i.product_id);
+        return `▸ ${i.nom}${cat ? ` (${cat})` : ""} x${i.quantite} — ${formatCFA(i.prix_unitaire * i.quantite)}`;
+      }).join('\n') +
       `\n\n*TOTAL: ${formatCFA(vente.total)}*\n\nMerci pour votre confiance ! 🙏`;
 
     const url = phone
@@ -293,9 +298,10 @@ export default function Factures() {
       `Veuillez trouver ci-dessous le récapitulatif de votre facture :\n\n` +
       `N° Facture: ${vente.id.slice(0, 8).toUpperCase()}\n` +
       `Date: ${new Date(vente.created_at).toLocaleDateString('fr-FR')}\n\n` +
-      (vente.items || []).map(i =>
-        `• ${i.nom} x${i.quantite} — ${formatCFA(i.prix_unitaire * i.quantite)}`
-      ).join('\n') +
+      (vente.items || []).map(i => {
+        const cat = products.find(p => p.id === i.product_id)?.category || "";
+        return `• ${i.nom}${cat ? ` (${cat})` : ""} x${i.quantite} — ${formatCFA(i.prix_unitaire * i.quantite)}`;
+      }).join('\n') +
       `\n\nTOTAL: ${formatCFA(vente.total)}\n\n` +
       `Merci pour votre confiance.\n\nALIYAH SHOP\nVente de Pièces Détachées de Moto`;
 
@@ -387,7 +393,7 @@ export default function Factures() {
           </DialogHeader>
           {preview && (
             <div className="mt-4">
-              <InvoicePreview vente={preview} />
+              <InvoicePreview vente={preview} products={products} />
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
                 <Button onClick={() => handleDownloadPDF(preview)} className="bg-primary text-primary-foreground font-bold gap-2">
                   <Download className="w-4 h-4" /> PDF
