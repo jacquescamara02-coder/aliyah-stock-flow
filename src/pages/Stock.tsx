@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
-import { useProducts, useAddProduct, useUpdateStock, useDeleteProduct, useBulkAddProducts } from "@/hooks/useProducts";
+import { useProducts, useAddProduct, useUpdateStock, useDeleteProduct, useBulkAddProducts, useUpdateProduct } from "@/hooks/useProducts";
 import { useStockMovements } from "@/hooks/useStockMovements";
 import { formatCFA, getMarginPercent } from "@/lib/store";
+import type { Product } from "@/lib/store";
 import { motion } from "framer-motion";
-import { Plus, Search, Package, Trash2, FileSpreadsheet, Truck, TrendingUp } from "lucide-react";
+import { Plus, Search, Package, Trash2, FileSpreadsheet, Truck, TrendingUp, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -16,12 +17,14 @@ export default function Stock() {
   const { data: movements = [] } = useStockMovements();
   const addProduct = useAddProduct();
   const updateStock = useUpdateStock();
+  const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const bulkAdd = useBulkAddProducts();
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showEntry, setShowEntry] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const [newRef, setNewRef] = useState("");
   const [newName, setNewName] = useState("");
@@ -31,10 +34,17 @@ export default function Stock() {
   const [newStock, setNewStock] = useState("");
   const [newStockMin, setNewStockMin] = useState("");
 
+  // Edit form state
+  const [editRef, setEditRef] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editCat, setEditCat] = useState("");
+  const [editPrixAchat, setEditPrixAchat] = useState("");
+  const [editPrixVente, setEditPrixVente] = useState("");
+  const [editStockMin, setEditStockMin] = useState("");
+
   const [entryQty, setEntryQty] = useState("");
   const [entryPrix, setEntryPrix] = useState("");
 
-  // Products recently stocked via supplier invoice (last 48h)
   const recentSupplierProductIds = useMemo(() => {
     const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const ids = new Set<string>();
@@ -60,20 +70,40 @@ export default function Stock() {
     }
     try {
       await addProduct.mutateAsync({
-        reference: newRef,
-        name: newName,
-        category: newCat,
-        prix_achat: Number(newPrixAchat),
-        prix_vente: Number(newPrixVente),
-        stock: Number(newStock) || 0,
-        stock_min: Number(newStockMin) || 5,
+        reference: newRef, name: newName, category: newCat,
+        prix_achat: Number(newPrixAchat), prix_vente: Number(newPrixVente),
+        stock: Number(newStock) || 0, stock_min: Number(newStockMin) || 5,
       });
       toast.success(`Produit "${newName}" ajouté avec succès.`);
       setShowAdd(false);
       setNewRef(""); setNewName(""); setNewCat(""); setNewPrixAchat(""); setNewPrixVente(""); setNewStock(""); setNewStockMin("");
-    } catch (e: any) {
-      toast.error(e.message);
-    }
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const openEdit = (p: Product) => {
+    setEditingProduct(p);
+    setEditRef(p.reference);
+    setEditName(p.name);
+    setEditCat(p.category);
+    setEditPrixAchat(String(p.prix_achat));
+    setEditPrixVente(String(p.prix_vente));
+    setEditStockMin(String(p.stock_min));
+  };
+
+  const handleEditProduct = async () => {
+    if (!editingProduct || !editRef || !editName) { toast.error("Référence et nom requis."); return; }
+    try {
+      await updateProduct.mutateAsync({
+        productId: editingProduct.id,
+        updates: {
+          reference: editRef, name: editName, category: editCat,
+          prix_achat: Number(editPrixAchat), prix_vente: Number(editPrixVente),
+          stock_min: Number(editStockMin) || 0,
+        },
+      });
+      toast.success(`"${editName}" modifié avec succès.`);
+      setEditingProduct(null);
+    } catch (e: any) { toast.error(e.message); }
   };
 
   const handleEntry = async () => {
@@ -85,9 +115,7 @@ export default function Stock() {
       toast.success(`Stock mis à jour. ${entryQty} unités ajoutées pour ${product.name}.`);
       setShowEntry(null);
       setEntryQty(""); setEntryPrix("");
-    } catch (e: any) {
-      toast.error(e.message);
-    }
+    } catch (e: any) { toast.error(e.message); }
   };
 
   return (
@@ -107,52 +135,31 @@ export default function Stock() {
                 <Plus className="w-4 h-4" /> Nouveau Produit
               </Button>
             </DialogTrigger>
-          <DialogContent className="bg-card border-border">
-            <DialogHeader><DialogTitle>Ajouter un Produit</DialogTitle></DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label-industrial">Référence *</label>
-                  <input className="input-underline w-full mt-1" value={newRef} onChange={(e) => setNewRef(e.target.value)} placeholder="REF-XXXX" />
+            <DialogContent className="bg-card border-border">
+              <DialogHeader><DialogTitle>Ajouter un Produit</DialogTitle></DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="label-industrial">Référence *</label><input className="input-underline w-full mt-1" value={newRef} onChange={(e) => setNewRef(e.target.value)} placeholder="REF-XXXX" /></div>
+                  <div><label className="label-industrial">Catégorie</label><input className="input-underline w-full mt-1" value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="Moteur, Freinage..." /></div>
                 </div>
-                <div>
-                  <label className="label-industrial">Catégorie</label>
-                  <input className="input-underline w-full mt-1" value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder="Moteur, Freinage..." />
+                <div><label className="label-industrial">Nom du produit *</label><input className="input-underline w-full mt-1" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Piston Kit - Yamaha 125" /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="label-industrial">Prix d'achat (FCFA) *</label><input className="input-underline w-full mt-1 font-mono" type="number" value={newPrixAchat} onChange={(e) => setNewPrixAchat(e.target.value)} /></div>
+                  <div><label className="label-industrial">Prix de vente (FCFA) *</label><input className="input-underline w-full mt-1 font-mono" type="number" value={newPrixVente} onChange={(e) => setNewPrixVente(e.target.value)} /></div>
                 </div>
+                {newPrixAchat && newPrixVente && (
+                  <p className="text-sm font-mono text-primary">Marge : {getMarginPercent(Number(newPrixAchat), Number(newPrixVente))}%</p>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div><label className="label-industrial">Stock initial</label><input className="input-underline w-full mt-1 font-mono" type="number" value={newStock} onChange={(e) => setNewStock(e.target.value)} /></div>
+                  <div><label className="label-industrial">Stock minimum</label><input className="input-underline w-full mt-1 font-mono" type="number" value={newStockMin} onChange={(e) => setNewStockMin(e.target.value)} /></div>
+                </div>
+                <Button onClick={handleAddProduct} disabled={addProduct.isPending} className="w-full bg-primary text-primary-foreground font-bold">
+                  {addProduct.isPending ? "Ajout..." : "Ajouter le Produit"}
+                </Button>
               </div>
-              <div>
-                <label className="label-industrial">Nom du produit *</label>
-                <input className="input-underline w-full mt-1" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Piston Kit - Yamaha 125" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label-industrial">Prix d'achat (FCFA) *</label>
-                  <input className="input-underline w-full mt-1 font-mono" type="number" value={newPrixAchat} onChange={(e) => setNewPrixAchat(e.target.value)} />
-                </div>
-                <div>
-                  <label className="label-industrial">Prix de vente (FCFA) *</label>
-                  <input className="input-underline w-full mt-1 font-mono" type="number" value={newPrixVente} onChange={(e) => setNewPrixVente(e.target.value)} />
-                </div>
-              </div>
-              {newPrixAchat && newPrixVente && (
-                <p className="text-sm font-mono text-primary">Marge : {getMarginPercent(Number(newPrixAchat), Number(newPrixVente))}%</p>
-              )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="label-industrial">Stock initial</label>
-                  <input className="input-underline w-full mt-1 font-mono" type="number" value={newStock} onChange={(e) => setNewStock(e.target.value)} />
-                </div>
-                <div>
-                  <label className="label-industrial">Stock minimum</label>
-                  <input className="input-underline w-full mt-1 font-mono" type="number" value={newStockMin} onChange={(e) => setNewStockMin(e.target.value)} />
-                </div>
-              </div>
-              <Button onClick={handleAddProduct} disabled={addProduct.isPending} className="w-full bg-primary text-primary-foreground font-bold">
-                {addProduct.isPending ? "Ajout..." : "Ajouter le Produit"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -169,7 +176,7 @@ export default function Stock() {
           <span className="label-industrial text-right">Prix Vente</span>
           <span className="label-industrial text-right">Stock</span>
           <span className="label-industrial text-right">Marge</span>
-          <span className="label-industrial text-right">Action</span>
+          <span className="label-industrial text-right">Actions</span>
         </div>
         {filtered.map((p) => {
           const isRecent = recentSupplierProductIds.has(p.id);
@@ -193,6 +200,9 @@ export default function Stock() {
               <p className={`font-mono text-lg text-right font-bold ${p.stock <= p.stock_min ? "text-destructive" : ""}`}>{p.stock}</p>
               <p className="font-mono text-lg text-right text-primary font-bold">{getMarginPercent(p.prix_achat, p.prix_vente)}%</p>
               <div className="flex gap-1 justify-end">
+                <Button size="sm" variant="outline" className="gap-1 border-primary/30 text-primary hover:bg-primary/10" onClick={() => openEdit(p)} title="Modifier">
+                  <Pencil className="w-3 h-3" />
+                </Button>
                 <Dialog open={showEntry === p.id} onOpenChange={(open) => { setShowEntry(open ? p.id : null); if (open) setEntryPrix(String(p.prix_achat)); }}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="outline" className="gap-1 border-border text-foreground"><Package className="w-3 h-3" /> Entrée</Button>
@@ -220,10 +230,7 @@ export default function Stock() {
                     <AlertDialogFooter>
                       <AlertDialogCancel className="border-border">Annuler</AlertDialogCancel>
                       <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={async () => {
-                        try {
-                          await deleteProduct.mutateAsync(p.id);
-                          toast.success(`"${p.name}" supprimé.`);
-                        } catch (e: any) { toast.error(e.message); }
+                        try { await deleteProduct.mutateAsync(p.id); toast.success(`"${p.name}" supprimé.`); } catch (e: any) { toast.error(e.message); }
                       }}>Supprimer</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -235,12 +242,35 @@ export default function Stock() {
         {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Aucun produit trouvé.</p>}
       </div>
 
+      {/* Edit Product Dialog */}
+      <Dialog open={!!editingProduct} onOpenChange={(open) => { if (!open) setEditingProduct(null); }}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader><DialogTitle>Modifier — {editingProduct?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="label-industrial">Référence *</label><input className="input-underline w-full mt-1" value={editRef} onChange={(e) => setEditRef(e.target.value)} /></div>
+              <div><label className="label-industrial">Catégorie</label><input className="input-underline w-full mt-1" value={editCat} onChange={(e) => setEditCat(e.target.value)} /></div>
+            </div>
+            <div><label className="label-industrial">Nom du produit *</label><input className="input-underline w-full mt-1" value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="label-industrial">Prix d'achat (FCFA)</label><input className="input-underline w-full mt-1 font-mono" type="number" value={editPrixAchat} onChange={(e) => setEditPrixAchat(e.target.value)} /></div>
+              <div><label className="label-industrial">Prix de vente (FCFA)</label><input className="input-underline w-full mt-1 font-mono" type="number" value={editPrixVente} onChange={(e) => setEditPrixVente(e.target.value)} /></div>
+            </div>
+            {editPrixAchat && editPrixVente && (
+              <p className="text-sm font-mono text-primary">Marge : {getMarginPercent(Number(editPrixAchat), Number(editPrixVente))}%</p>
+            )}
+            <div><label className="label-industrial">Stock minimum</label><input className="input-underline w-full mt-1 font-mono" type="number" value={editStockMin} onChange={(e) => setEditStockMin(e.target.value)} /></div>
+            <Button onClick={handleEditProduct} disabled={updateProduct.isPending} className="w-full bg-primary text-primary-foreground font-bold">
+              {updateProduct.isPending ? "Enregistrement..." : "Enregistrer les modifications"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <ExcelImport
         open={showImport}
         onOpenChange={setShowImport}
-        onImport={async (rows) => {
-          await bulkAdd.mutateAsync(rows);
-        }}
+        onImport={async (rows) => { await bulkAdd.mutateAsync(rows); }}
       />
     </div>
   );

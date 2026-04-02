@@ -93,6 +93,17 @@ export function useBulkAddProducts() {
   });
 }
 
+export function useUpdateProduct() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ productId, updates }: { productId: string; updates: { reference?: string; name?: string; category?: string; prix_achat?: number; prix_vente?: number; stock_min?: number } }) => {
+      const { error } = await supabase.from("products").update(updates).eq("id", productId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["products"] }),
+  });
+}
+
 export function useDeleteProduct() {
   const qc = useQueryClient();
   return useMutation({
