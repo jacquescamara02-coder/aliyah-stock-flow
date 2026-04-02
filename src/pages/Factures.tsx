@@ -298,9 +298,10 @@ export default function Factures() {
       `Veuillez trouver ci-dessous le récapitulatif de votre facture :\n\n` +
       `N° Facture: ${vente.id.slice(0, 8).toUpperCase()}\n` +
       `Date: ${new Date(vente.created_at).toLocaleDateString('fr-FR')}\n\n` +
-      (vente.items || []).map(i =>
-        `• ${i.nom} x${i.quantite} — ${formatCFA(i.prix_unitaire * i.quantite)}`
-      ).join('\n') +
+      (vente.items || []).map(i => {
+        const cat = products.find(p => p.id === i.product_id)?.category || "";
+        return `• ${i.nom}${cat ? ` (${cat})` : ""} x${i.quantite} — ${formatCFA(i.prix_unitaire * i.quantite)}`;
+      }).join('\n') +
       `\n\nTOTAL: ${formatCFA(vente.total)}\n\n` +
       `Merci pour votre confiance.\n\nALIYAH SHOP\nVente de Pièces Détachées de Moto`;
 
