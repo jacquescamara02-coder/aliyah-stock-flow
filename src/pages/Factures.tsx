@@ -14,8 +14,9 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DateFilter, filterByDateRange } from "@/components/DateFilter";
 
-function InvoicePreview({ vente }: { vente: Vente & { items?: VenteItem[] } }) {
+function InvoicePreview({ vente, products = [] }: { vente: Vente & { items?: VenteItem[] }; products?: { id: string; category: string }[] }) {
   const date = new Date(vente.created_at).toLocaleDateString('fr-FR');
+  const getCategory = (productId: string) => products.find(p => p.id === productId)?.category || "";
   return (
     <div className="bg-foreground text-background p-8 rounded font-sans text-sm">
       <div className="flex justify-between items-start mb-8">
