@@ -31,6 +31,10 @@ interface NewItem {
   nom: string;
   quantite: string;
   prix_unitaire: string;
+  __newProduct?: boolean;
+  __category?: string;
+  __prix_vente?: string;
+  __stock_min?: string;
 }
 
 const emptyItem: NewItem = { product_id: "", reference: "", nom: "", quantite: "", prix_unitaire: "" };
