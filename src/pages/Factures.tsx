@@ -257,7 +257,7 @@ export default function Factures() {
 
   const handlePrintPDF = async (vente: Vente & { items?: VenteItem[] }) => {
     try {
-      const doc = await buildPDF(vente);
+      const doc = await buildPDF(vente, products);
       doc.autoPrint();
       const blob = getPDFBlob(doc);
       const url = URL.createObjectURL(blob);
