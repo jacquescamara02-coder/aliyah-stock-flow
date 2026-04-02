@@ -29,9 +29,11 @@ export default function Depenses() {
   const [montant, setMontant] = useState("");
   const [categorie, setCategorie] = useState("Autre");
   const [dateDepense, setDateDepense] = useState(new Date().toISOString().split("T")[0]);
-  const [filterMonth, setFilterMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [filterMonth, setFilterMonth] = useState("");
 
-  const filtered = depenses.filter((d) => d.date_depense.startsWith(filterMonth));
+  const filtered = filterMonth
+    ? depenses.filter((d) => d.date_depense.startsWith(filterMonth))
+    : depenses;
   const totalMois = filtered.reduce((s, d) => s + d.montant, 0);
 
   const handleAdd = () => {
