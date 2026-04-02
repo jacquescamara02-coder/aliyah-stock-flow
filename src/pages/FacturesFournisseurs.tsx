@@ -133,7 +133,30 @@ export default function FacturesFournisseurs() {
     const validItems = items.filter((i) => i.nom && Number(i.quantite) > 0 && Number(i.prix_unitaire) > 0);
     if (validItems.length === 0) { toast.error("Ajoutez au moins un article."); return; }
 
-    const mappedItems = validItems.map((i) => ({
+    // Create new products first
+    const resolvedItems: typeof validItems = [];
+    for (const item of validItems) {
+      if (item.__newProduct && !item.product_id) {
+        if (!item.reference || !item.nom) { toast.error(`Référence et nom requis pour le nouveau produit "${item.nom || item.reference}".`); return; }
+        try {
+          const newProduct = await addProduct.mutateAsync({
+            reference: item.reference,
+            name: item.nom,
+            category: item.__category || "",
+            prix_achat: Number(item.prix_unitaire),
+            prix_vente: Number(item.__prix_vente) || 0,
+            stock: 0,
+            stock_min: Number(item.__stock_min) || 0,
+          });
+          resolvedItems.push({ ...item, product_id: newProduct.id });
+          toast.success(`Produit "${item.nom}" créé dans le stock.`);
+        } catch (e: any) { toast.error(`Erreur création produit: ${e.message}`); return; }
+      } else {
+        resolvedItems.push(item);
+      }
+    }
+
+    const mappedItems = resolvedItems.map((i) => ({
       product_id: i.product_id || undefined,
       reference: i.reference,
       nom: i.nom,
