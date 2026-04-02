@@ -235,6 +235,7 @@ function EditInvoiceDialog({ vente, open, onClose }: { vente: Vente & { items?: 
 export default function Factures() {
   const navigate = useNavigate();
   const { data: ventes = [] } = useVentes();
+  const { data: products = [] } = useProducts();
   const { data: clients = [] } = useClients();
   const deleteVente = useDeleteVente();
   const [preview, setPreview] = useState<(Vente & { items?: VenteItem[] }) | null>(null);
