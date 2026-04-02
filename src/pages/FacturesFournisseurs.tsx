@@ -65,6 +65,7 @@ export default function FacturesFournisseurs() {
   const { data: factures = [] } = useFacturesFournisseurs();
   const { data: products = [] } = useProducts();
   const addFournisseur = useAddFournisseur();
+  const addProduct = useAddProduct();
   const addFacture = useAddFactureFournisseur();
   const deleteFacture = useDeleteFactureFournisseur();
   const updateFacture = useUpdateFactureFournisseur();
