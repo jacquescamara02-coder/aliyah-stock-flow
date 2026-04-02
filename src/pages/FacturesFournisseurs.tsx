@@ -301,15 +301,28 @@ export default function FacturesFournisseurs() {
                       <div key={idx} className="border border-border rounded p-3 mb-2">
                         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-end">
                           <div>
-                            <select className="input-underline w-full bg-transparent text-sm" value={item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
+                            <select className="input-underline w-full bg-transparent text-sm" value={item.__newProduct ? "__NEW__" : item.product_id} onChange={(e) => handleProductSelect(idx, e.target.value)}>
                               <option value="">Produit (ou saisie libre)</option>
+                              <option value="__NEW__" className="font-bold text-primary">➕ Créer un nouveau produit</option>
                               {products.map((p) => (
                                 <option key={p.id} value={p.id}>
                                   {p.reference} — {p.name} ({p.category}) [Stock: {p.stock}]
                                 </option>
                               ))}
                             </select>
-                            {!item.product_id && (
+                            {item.__newProduct && (
+                              <div className="mt-2 p-2 bg-primary/5 border border-primary/20 rounded space-y-2">
+                                <p className="text-xs font-bold text-primary flex items-center gap-1"><Plus className="w-3 h-3" /> Nouveau produit — sera créé automatiquement</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <input className="input-underline text-sm" placeholder="Référence *" value={item.reference} onChange={(e) => { const u = [...items]; u[idx].reference = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" placeholder="Nom produit *" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" placeholder="Catégorie / Modèle" value={item.__category || ""} onChange={(e) => { const u = [...items]; u[idx].__category = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" type="number" placeholder="Prix de vente" value={item.__prix_vente || ""} onChange={(e) => { const u = [...items]; u[idx].__prix_vente = e.target.value; setItems(u); }} />
+                                  <input className="input-underline text-sm" type="number" placeholder="Stock minimum" value={item.__stock_min || ""} onChange={(e) => { const u = [...items]; u[idx].__stock_min = e.target.value; setItems(u); }} />
+                                </div>
+                              </div>
+                            )}
+                            {!item.product_id && !item.__newProduct && (
                               <div className="grid grid-cols-2 gap-2 mt-1">
                                 <input className="input-underline text-sm" placeholder="Référence" value={item.reference} onChange={(e) => { const u = [...items]; u[idx].reference = e.target.value; setItems(u); }} />
                                 <input className="input-underline text-sm" placeholder="Nom article" value={item.nom} onChange={(e) => { const u = [...items]; u[idx].nom = e.target.value; setItems(u); }} />
