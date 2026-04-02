@@ -247,7 +247,7 @@ export default function Factures() {
 
   const handleDownloadPDF = async (vente: Vente & { items?: VenteItem[] }) => {
     try {
-      const doc = await buildPDF(vente);
+      const doc = await buildPDF(vente, products);
       downloadPDF(doc, `Facture_${vente.id.slice(0, 8).toUpperCase()}.pdf`);
       toast.success("Facture PDF téléchargée.");
     } catch {
