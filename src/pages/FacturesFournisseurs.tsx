@@ -158,6 +158,7 @@ export default function FacturesFournisseurs() {
     setNumFacture("");
     setItems([{ ...emptyItem }]);
     setProductSearch("");
+    localStorage.removeItem(DRAFT_KEY);
   };
 
   const handleSubmitFacture = async () => {
