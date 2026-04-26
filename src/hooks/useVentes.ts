@@ -69,29 +69,7 @@ export function useUpdateVente() {
       const total = cart.reduce((s, i) => s + i.prixUnitaire * i.quantite, 0);
       const marge = cart.reduce((s, i) => s + (i.prixUnitaire - i.prixAchat) * i.quantite, 0);
 
-      // Reverse old stock with movement tracking
-      const { data: oldItems } = await supabase.from("vente_items").select("*").eq("vente_id", venteId);
-      if (oldItems) {
-        for (const item of oldItems) {
-          const { data: prod } = await supabase.from("products").select("stock").eq("id", item.product_id).single();
-          if (prod) {
-            const newStock = prod.stock + item.quantite;
-            await supabase.from("products").update({ stock: newStock }).eq("id", item.product_id);
-            await recordMovement({
-              product_id: item.product_id,
-              reference: item.reference,
-              nom: item.nom,
-              type: "retour",
-              quantite: item.quantite,
-              stock_avant: prod.stock,
-              stock_apres: newStock,
-              motif: `Modification facture ${venteId.slice(0, 8).toUpperCase()} — retour stock`,
-              vente_id: venteId,
-            });
-          }
-        }
-      }
-
+      // Le trigger DB gère automatiquement : restauration du stock à la suppression + déduction à l'insertion
       await supabase.from("vente_items").delete().eq("vente_id", venteId);
 
       const updateData: any = { client_id: client.id, client_nom: client.nom, total, marge };
@@ -109,26 +87,6 @@ export function useUpdateVente() {
         prix_achat: i.prixAchat,
       }));
       await supabase.from("vente_items").insert(items);
-
-      // Deduct new stock with movement tracking
-      for (const item of cart) {
-        const { data: prod } = await supabase.from("products").select("stock").eq("id", item.productId).single();
-        if (prod) {
-          const newStock = prod.stock - item.quantite;
-          await supabase.from("products").update({ stock: newStock }).eq("id", item.productId);
-          await recordMovement({
-            product_id: item.productId,
-            reference: item.reference,
-            nom: item.nom,
-            type: "sortie",
-            quantite: item.quantite,
-            stock_avant: prod.stock,
-            stock_apres: newStock,
-            motif: `Modification facture ${venteId.slice(0, 8).toUpperCase()} — nouvelle vente`,
-            vente_id: venteId,
-          });
-        }
-      }
 
       return { id: venteId, items };
     },
