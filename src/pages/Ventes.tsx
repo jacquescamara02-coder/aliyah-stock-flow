@@ -57,7 +57,27 @@ export default function Ventes() {
         </div>
         <div className="relative">
           <Search className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input className="input-underline w-full pl-6" placeholder="Rechercher une pièce..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input
+            className="input-underline w-full pl-6 pr-48"
+            placeholder="Tapez le nom et appuyez sur Entrée pour ajouter…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && filtered.length > 0) {
+                e.preventDefault();
+                const p = filtered[0];
+                addToCart(p, 1);
+                toast.success(`${p.name} ajouté au panier.`);
+                setSearch("");
+              }
+            }}
+            autoFocus
+          />
+          {search && filtered.length > 0 && (
+            <span className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hidden sm:flex items-center gap-1">
+              {filtered.length} résultat(s) — <kbd className="px-1 py-0.5 border border-border rounded text-[10px] font-mono">↵</kbd> ajoute le 1er
+            </span>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto space-y-0 bg-card border border-border rounded">
           {filtered.map((p) => (
