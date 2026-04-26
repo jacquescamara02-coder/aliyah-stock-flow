@@ -48,28 +48,7 @@ export function useDeleteVente() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (venteId: string) => {
-      // Restore stock before deleting
-      const { data: oldItems } = await supabase.from("vente_items").select("*").eq("vente_id", venteId);
-      if (oldItems) {
-        for (const item of oldItems) {
-          const { data: prod } = await supabase.from("products").select("stock").eq("id", item.product_id).single();
-          if (prod) {
-            const newStock = prod.stock + item.quantite;
-            await supabase.from("products").update({ stock: newStock }).eq("id", item.product_id);
-            await recordMovement({
-              product_id: item.product_id,
-              reference: item.reference,
-              nom: item.nom,
-              type: "annulation",
-              quantite: item.quantite,
-              stock_avant: prod.stock,
-              stock_apres: newStock,
-              motif: `Suppression facture ${venteId.slice(0, 8).toUpperCase()}`,
-              vente_id: venteId,
-            });
-          }
-        }
-      }
+      // Le trigger DB gère la restauration du stock + mouvements automatiquement à la suppression de vente_items
       await supabase.from("vente_items").delete().eq("vente_id", venteId);
       const { error } = await supabase.from("ventes").delete().eq("id", venteId);
       if (error) throw error;
