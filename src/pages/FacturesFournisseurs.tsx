@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useFournisseurs,
   useAddFournisseur,
@@ -86,6 +86,39 @@ export default function FacturesFournisseurs() {
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
 
+  const DRAFT_KEY = "aliyah-facture-fourn-draft";
+
+  // Restore draft on mount (only if not editing existing facture)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d && (d.items?.length || d.selectedFournisseur || d.numFacture)) {
+          setSelectedFournisseur(d.selectedFournisseur || "");
+          setNumFacture(d.numFacture || "");
+          setItems(d.items?.length ? d.items : [{ ...emptyItem }]);
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save draft whenever form changes (only when creating, not editing)
+  useEffect(() => {
+    if (editingFacture) return;
+    const hasContent =
+      selectedFournisseur ||
+      numFacture ||
+      items.some((i) => i.nom || i.reference || i.quantite || i.prix_unitaire);
+    if (hasContent) {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ selectedFournisseur, numFacture, items })
+      );
+    }
+  }, [selectedFournisseur, numFacture, items, editingFacture]);
+
   const filteredFactures = filterByDateRange(factures, "date_facture", dateFrom, dateTo);
 
   const handleAddFournisseur = async () => {
@@ -125,6 +158,20 @@ export default function FacturesFournisseurs() {
     setNumFacture("");
     setItems([{ ...emptyItem }]);
     setProductSearch("");
+    localStorage.removeItem(DRAFT_KEY);
+  };
+
+  // Close dialog WITHOUT discarding the draft (user can resume later)
+  const closeDialogKeepDraft = () => {
+    if (editingFacture) {
+      // Editing existing: discard edit state but keep no draft
+      setEditingFacture(null);
+      setSelectedFournisseur("");
+      setNumFacture("");
+      setItems([{ ...emptyItem }]);
+      setProductSearch("");
+    }
+    setShowNewFacture(false);
   };
 
   const handleSubmitFacture = async () => {
@@ -270,7 +317,7 @@ export default function FacturesFournisseurs() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={showNewFacture} onOpenChange={(open) => { if (!open) resetForm(); else setShowNewFacture(true); }}>
+          <Dialog open={showNewFacture} onOpenChange={(open) => { if (!open) closeDialogKeepDraft(); else setShowNewFacture(true); }}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground font-bold gap-2">
                 <Plus className="w-4 h-4" /> Nouvelle Facture
@@ -278,6 +325,12 @@ export default function FacturesFournisseurs() {
             </DialogTrigger>
             <DialogContent className="bg-card border-border max-w-3xl max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{editingFacture ? "Modifier la Facture Fournisseur" : "Enregistrer une Facture Fournisseur"}</DialogTitle></DialogHeader>
+              {!editingFacture && (selectedFournisseur || numFacture || items.some((i) => i.nom || i.reference || i.quantite || i.prix_unitaire)) && (
+                <div className="mt-2 flex items-center justify-between text-xs bg-primary/10 border border-primary/30 rounded px-3 py-2">
+                  <span className="text-primary font-mono">● Brouillon auto-sauvegardé — vos saisies sont conservées même si vous fermez</span>
+                  <button type="button" className="text-muted-foreground hover:text-destructive underline" onClick={() => { if (confirm("Vider le brouillon en cours ?")) { setSelectedFournisseur(""); setNumFacture(""); setItems([{ ...emptyItem }]); localStorage.removeItem(DRAFT_KEY); } }}>Vider</button>
+                </div>
+              )}
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
