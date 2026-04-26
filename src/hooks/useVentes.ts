@@ -186,27 +186,8 @@ export function useConfirmVente() {
         prix_unitaire: i.prixUnitaire,
         prix_achat: i.prixAchat,
       }));
+      // Le trigger DB `trg_adjust_stock_on_vente_item` gère la déduction du stock + mouvements automatiquement
       await supabase.from("vente_items").insert(items);
-
-      // Deduct stock with movement tracking
-      for (const item of cart) {
-        const { data: prod } = await supabase.from("products").select("stock").eq("id", item.productId).single();
-        if (prod) {
-          const newStock = prod.stock - item.quantite;
-          await supabase.from("products").update({ stock: newStock }).eq("id", item.productId);
-          await recordMovement({
-            product_id: item.productId,
-            reference: item.reference,
-            nom: item.nom,
-            type: "sortie",
-            quantite: item.quantite,
-            stock_avant: prod.stock,
-            stock_apres: newStock,
-            motif: `Vente ${vente.id.slice(0, 8).toUpperCase()} — ${client.nom}`,
-            vente_id: vente.id,
-          });
-        }
-      }
 
       await supabase.from("clients").update({ total_achats: client.total_achats + total }).eq("id", client.id);
 
