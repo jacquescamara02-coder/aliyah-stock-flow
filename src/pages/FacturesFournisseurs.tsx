@@ -161,6 +161,19 @@ export default function FacturesFournisseurs() {
     localStorage.removeItem(DRAFT_KEY);
   };
 
+  // Close dialog WITHOUT discarding the draft (user can resume later)
+  const closeDialogKeepDraft = () => {
+    if (editingFacture) {
+      // Editing existing: discard edit state but keep no draft
+      setEditingFacture(null);
+      setSelectedFournisseur("");
+      setNumFacture("");
+      setItems([{ ...emptyItem }]);
+      setProductSearch("");
+    }
+    setShowNewFacture(false);
+  };
+
   const handleSubmitFacture = async () => {
     const fournisseur = fournisseurs.find((f) => f.id === selectedFournisseur);
     if (!fournisseur) { toast.error("Sélectionnez un fournisseur."); return; }
