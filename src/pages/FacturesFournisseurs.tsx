@@ -325,6 +325,12 @@ export default function FacturesFournisseurs() {
             </DialogTrigger>
             <DialogContent className="bg-card border-border max-w-3xl max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{editingFacture ? "Modifier la Facture Fournisseur" : "Enregistrer une Facture Fournisseur"}</DialogTitle></DialogHeader>
+              {!editingFacture && (selectedFournisseur || numFacture || items.some((i) => i.nom || i.reference || i.quantite || i.prix_unitaire)) && (
+                <div className="mt-2 flex items-center justify-between text-xs bg-primary/10 border border-primary/30 rounded px-3 py-2">
+                  <span className="text-primary font-mono">● Brouillon auto-sauvegardé — vos saisies sont conservées même si vous fermez</span>
+                  <button type="button" className="text-muted-foreground hover:text-destructive underline" onClick={() => { if (confirm("Vider le brouillon en cours ?")) { setSelectedFournisseur(""); setNumFacture(""); setItems([{ ...emptyItem }]); localStorage.removeItem(DRAFT_KEY); } }}>Vider</button>
+                </div>
+              )}
               <div className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
