@@ -77,61 +77,69 @@ interface CartState {
   setSelectedClient: (clientId: string | null) => void;
 }
 
-export const useCartStore = create<CartState>((set) => ({
-  cart: [],
-  selectedClientId: null,
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      cart: [],
+      selectedClientId: null,
 
-  addToCart: (product, quantite) => {
-    set((state) => {
-      const existing = state.cart.find((i) => i.productId === product.id);
-      if (existing) {
-        return {
+      addToCart: (product, quantite) => {
+        set((state) => {
+          const existing = state.cart.find((i) => i.productId === product.id);
+          if (existing) {
+            return {
+              cart: state.cart.map((i) =>
+                i.productId === product.id
+                  ? { ...i, quantite: i.quantite + quantite }
+                  : i
+              ),
+            };
+          }
+          return {
+            cart: [
+              ...state.cart,
+              {
+                productId: product.id,
+                reference: product.reference,
+                nom: product.name,
+                quantite,
+                prixUnitaire: product.prix_vente,
+                prixAchat: product.prix_achat,
+              },
+            ],
+          };
+        });
+      },
+
+      removeFromCart: (productId) => {
+        set((state) => ({ cart: state.cart.filter((i) => i.productId !== productId) }));
+      },
+
+      updateCartQuantity: (productId, quantite) => {
+        set((state) => ({
           cart: state.cart.map((i) =>
-            i.productId === product.id
-              ? { ...i, quantite: i.quantite + quantite }
-              : i
+            i.productId === productId ? { ...i, quantite } : i
           ),
-        };
-      }
-      return {
-        cart: [
-          ...state.cart,
-          {
-            productId: product.id,
-            reference: product.reference,
-            nom: product.name,
-            quantite,
-            prixUnitaire: product.prix_vente,
-            prixAchat: product.prix_achat,
-          },
-        ],
-      };
-    });
-  },
+        }));
+      },
 
-  removeFromCart: (productId) => {
-    set((state) => ({ cart: state.cart.filter((i) => i.productId !== productId) }));
-  },
+      updateCartPrice: (productId, prixUnitaire) => {
+        set((state) => ({
+          cart: state.cart.map((i) =>
+            i.productId === productId ? { ...i, prixUnitaire } : i
+          ),
+        }));
+      },
 
-  updateCartQuantity: (productId, quantite) => {
-    set((state) => ({
-      cart: state.cart.map((i) =>
-        i.productId === productId ? { ...i, quantite } : i
-      ),
-    }));
-  },
-
-  updateCartPrice: (productId, prixUnitaire) => {
-    set((state) => ({
-      cart: state.cart.map((i) =>
-        i.productId === productId ? { ...i, prixUnitaire } : i
-      ),
-    }));
-  },
-
-  clearCart: () => set({ cart: [], selectedClientId: null }),
-  setSelectedClient: (clientId) => set({ selectedClientId: clientId }),
-}));
+      clearCart: () => set({ cart: [], selectedClientId: null }),
+      setSelectedClient: (clientId) => set({ selectedClientId: clientId }),
+    }),
+    {
+      name: 'aliyah-cart-draft',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+);
 
 // Helpers
 export const formatCFA = (amount: number): string => {
