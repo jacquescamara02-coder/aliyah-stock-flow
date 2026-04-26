@@ -317,7 +317,7 @@ export default function FacturesFournisseurs() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={showNewFacture} onOpenChange={(open) => { if (!open) resetForm(); else setShowNewFacture(true); }}>
+          <Dialog open={showNewFacture} onOpenChange={(open) => { if (!open) closeDialogKeepDraft(); else setShowNewFacture(true); }}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground font-bold gap-2">
                 <Plus className="w-4 h-4" /> Nouvelle Facture
