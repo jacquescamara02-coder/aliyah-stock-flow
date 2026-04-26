@@ -86,6 +86,39 @@ export default function FacturesFournisseurs() {
   const [dateFrom, setDateFrom] = useState<Date>();
   const [dateTo, setDateTo] = useState<Date>();
 
+  const DRAFT_KEY = "aliyah-facture-fourn-draft";
+
+  // Restore draft on mount (only if not editing existing facture)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d && (d.items?.length || d.selectedFournisseur || d.numFacture)) {
+          setSelectedFournisseur(d.selectedFournisseur || "");
+          setNumFacture(d.numFacture || "");
+          setItems(d.items?.length ? d.items : [{ ...emptyItem }]);
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-save draft whenever form changes (only when creating, not editing)
+  useEffect(() => {
+    if (editingFacture) return;
+    const hasContent =
+      selectedFournisseur ||
+      numFacture ||
+      items.some((i) => i.nom || i.reference || i.quantite || i.prix_unitaire);
+    if (hasContent) {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ selectedFournisseur, numFacture, items })
+      );
+    }
+  }, [selectedFournisseur, numFacture, items, editingFacture]);
+
   const filteredFactures = filterByDateRange(factures, "date_facture", dateFrom, dateTo);
 
   const handleAddFournisseur = async () => {
